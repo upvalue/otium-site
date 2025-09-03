@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'BoldPixels';
+  src: url('/BoldPixels1.4.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.font-boldpixels {
+  font-family: 'BoldPixels', monospace;
+}
+
+a {
+  @apply text-sky-400;
+  @apply hover:underline;
+
+}
