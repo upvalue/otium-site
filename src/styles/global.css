@@ -16,7 +16,6 @@
 a {
   @apply text-sky-400;
   @apply hover:underline;
-
 }
 
 @keyframes float {
@@ -37,6 +36,7 @@ a {
   font-size: 32px;*/
 }
 
-html {
- background-color: rgb(3 7 18 / var(--tw-bg-opacity, 1));
+
+html, body, main {
+  background-color: #030712;
 }
