@@ -1,0 +1,3 @@
+[submodule "src/otium"]
+	path = src/otium
+	url = https://github.com/upvalue/otium.git

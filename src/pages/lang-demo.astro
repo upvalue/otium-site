@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+import DemoApp from '../components/LangDemo.tsx';
+---
+
+<Layout title="Language Demo">
+	<noscript>
+		This demo requires JavaScript.
+	</noscript>
+	<div id="demo-container">
+		<DemoApp client:only="react" />
+	</div>
+	<div id="error-fallback" style="display: none;" class="mx-auto text-red-400 bg-red-900/20 border border-red-500 rounded-lg">
+		<h2 class="text-xl font-bold mb-2">Demo Component Failed to Load</h2>
+		<p class="mb-2">There was an error loading the language demo component. Check the browser console for details.</p>
+		<details class="mt-4">
+			<summary class="cursor-pointer font-medium">Error Details</summary>
+			<pre id="error-details" class="mt-2 p-3 bg-gray-800 rounded text-sm overflow-auto"></pre>
+		</details>
+	</div>
+</Layout>
+
+<script>
+	// Listen for component errors and show fallback
+	window.addEventListener('error', (e) => {
+		if (e.filename?.includes('LangDemo') || e.message?.includes('astro-island')) {
+			const container = document.getElementById('demo-container');
+			const fallback = document.getElementById('error-fallback');
+			const details = document.getElementById('error-details');
+			
+			if (container && fallback && details) {
+				container.style.display = 'none';
+				fallback.style.display = 'block';
+				details.textContent = `${e.message}\nFile: ${e.filename}\nLine: ${e.lineno}:${e.colno}`;
+			}
+		}
+	});
+
+	// Also listen for unhandled promise rejections
+	window.addEventListener('unhandledrejection', (e) => {
+		if (e.reason?.message?.includes('translate') || e.reason?.message?.includes('OtExpr')) {
+			const container = document.getElementById('demo-container');
+			const fallback = document.getElementById('error-fallback');
+			const details = document.getElementById('error-details');
+			
+			if (container && fallback && details) {
+				container.style.display = 'none';
+				fallback.style.display = 'block';
+				details.textContent = `Promise Rejection: ${e.reason?.message || e.reason}`;
+			}
+		}
+	});
+</script>

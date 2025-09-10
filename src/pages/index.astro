@@ -1,73 +1,49 @@
 ---
-import '../styles/global.css';
-import otiumLogo from '../assets/otium-logo-1.png';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/png" href="/otium-favicon.png" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Otium</title>
-	</head>
-	<body class="min-h-screen flex flex-col p-8">
-		<header class="text-center mb-16 flex flex-col items-center justify-center gap-4">
-			<div class="flex items-center justify-center gap-8">
-				<img src={otiumLogo.src} alt="Otium Logo" class="animate-float" />
-				<div>
-					<h1 class="text-8xl font-bold text-white font-boldpixels">otium</h1>
-				</div>
-			</div>
-			<nav class="font-boldpixels text-4xl text-white">
-				<a href="https://upvalue.io/posts/tag/otium">devlog</a>
-				/ 
-				<a href="https://github.com/upvalue/otium">github</a>
-			</nav>
-		</header>
+<Layout title="Otium">
+	<div class="space-y-8 text-gray-200 max-w-4xl mx-auto">
+		<div class="prose prose-lg prose-invert ">
+			<p>
+				<span class="capital-letter">O</span>tium is a project to make a modern day retro computer. It's an...
+			</p>
+		</div>
 		
-		<main class="max-w-4xl mx-auto flex-1 flex flex-col  space-y-8 text-gray-200">
-			<div class="prose prose-lg prose-invert ">
-				<p>
-					<span class="capital-letter">O</span>tium is a project to make a modern day retro computer. It's an...
-				</p>
-			</div>
-			
-			<div class="prose prose-lg prose-invert">
-				<p>
-					<span class="capital-letter">O</span>perating system. Inspired by Lisp machines, Smalltalk
-					(particularly the moment where <a
-					href="https://www.aneddoticamagazine.com/alto-system-project-dan-ingalls-demonstrates-smalltalk/">Dan
-					Ingalls redefines core system behavior</a> while giving a demo for
-					Steve Jobs) and microkernels, the idea is to have a system that can be altered on the fly.
-				</p>
-			</div>
-			
-			<div class="prose prose-lg prose-invert">
-				<p>
-					A programming language. Inspired by Scheme, Lua and with a little sugar to give it a C-like syntax.
-				</p>
-			</div>
+		<div class="prose prose-lg prose-invert">
+			<p>
+				<span class="capital-letter">O</span>perating system. Inspired by Lisp machines, Smalltalk
+				(particularly the moment where <a
+				href="https://www.aneddoticamagazine.com/alto-system-project-dan-ingalls-demonstrates-smalltalk/">Dan
+				Ingalls redefines core system behavior</a> while giving a demo for
+				Steve Jobs) and microkernels, the idea is to have a system that can be altered on the fly.
+			</p>
+		</div>
+		
+		<div class="prose prose-lg prose-invert">
+			<p>
+				A programming language. Inspired by Scheme, Lua and with a little sugar to give it a C-like syntax.
+			</p>
+		</div>
 
-			<div class="prose prose-lg prose-invert">
-				<p>
-					A physical device based on the <a href="https://www.raspberrypi.com/products/rp2350/">RP2350</a> microcontroller, with a split mechanical keyboard.
-				</p>
-			</div>
+		<div class="prose prose-lg prose-invert">
+			<p>
+				A physical device based on the <a href="https://www.raspberrypi.com/products/rp2350/">RP2350</a> microcontroller, with a split mechanical keyboard.
+			</p>
+		</div>
 
-			<div class="prose prose-lg prose-invert">
-				<div class="flex flex-col space-y-2">
+		<div class="prose prose-lg prose-invert">
+			<div class="flex flex-col space-y-2">
 
-					<span>And it's also mostly vaporware.</span>
-					<span>
-					Just getting started right now, but you can follow along on <a href="https://github.com/upvalue/otium">github</a>.
-					</span>
-					<span>With apologies.</span>
-					<span>
-						-- <a href="https://upvalue.io">Phil</a>.
-					</span>
-				</div>
+				<span>And it's also mostly vaporware.</span>
+				<span>
+				Just getting started right now, but you can follow along on <a href="https://github.com/upvalue/otium">github</a>.
+				</span>
+				<span>With apologies.</span>
+				<span>
+					-- <a href="https://upvalue.io">Phil</a>.
+				</span>
 			</div>
-		</main>
-	</body>
-</html>
+		</div>
+	</div>
+</Layout>

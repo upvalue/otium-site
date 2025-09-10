@@ -1,11 +1,13 @@
 ---
 import '../styles/global.css';
+import otiumLogo from '../assets/otium-logo-1.png';
 
 export interface Props {
   title: string;
+  showNav?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, showNav = true } = Astro.props;
 ---
 
 <!doctype html>
@@ -18,7 +20,29 @@ const { title } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body>
-    <slot />
+  <body class="min-h-screen flex flex-col p-4 sm:p-8">
+    <header class="text-center mb-16 flex flex-col items-center justify-center gap-4">
+      <div class="flex items-center justify-center gap-8">
+        <img src={otiumLogo.src} alt="Otium Logo" class="animate-float" />
+        <div>
+          <h1 class="text-8xl font-bold text-white font-boldpixels">otium</h1>
+        </div>
+      </div>
+      {showNav && (
+        <nav class="font-boldpixels text-4xl text-white">
+          {/*<a href="/">home</a>
+          / 
+          <a href="/demo">demo</a>
+          / */}
+          <a href="https://upvalue.io/posts/tag/otium">devlog</a>
+          / 
+          <a href="https://github.com/upvalue/otium">github</a>
+        </nav>
+      )}
+    </header>
+    
+    <main class="flex-1 flex flex-col">
+      <slot />
+    </main>
   </body>
 </html>
