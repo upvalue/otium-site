@@ -58,8 +58,8 @@ jobs:
         run: |
           cd otium/os
           zig build -Dtarget-arch=wasm32
-          mkdir -p ../../public/wasm
-          cp zig-out/bin/kernel.elf.wasm ../../public/wasm/
+          mkdir -p ../../public/os-wasm
+          cp zig-out/bin/kernel.elf.wasm ../../public/os-wasm/
         working-directory: ${{ env.BUILD_PATH }}
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
