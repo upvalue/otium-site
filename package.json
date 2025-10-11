@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "update-otium": "git submodule update --remote src/otium"
+    "update-otium": "git submodule update --remote otium"
   },
   "dependencies": {
     "@astrojs/preact": "^4.1.0",
