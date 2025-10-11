@@ -18,6 +18,11 @@ a {
   @apply hover:underline;
 }
 
+h1 a {
+  @apply text-white;
+  @apply hover:no-underline;
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0);

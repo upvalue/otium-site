@@ -9,16 +9,19 @@ import DemoApp from '../components/LangDemo.tsx';
 	</noscript>
 	<div id="demo-container prose">
 		<div class="flex flex-col gap-y-6 mb-6">
+			<h1 class="text-2xl font-bold">Otium Language Demo</h1>
+			<p>
+				This is a very under construction demo that lets you evaluate Otium code. 
+			</p>
+				
+			<p>
+				You can use the toggle
+				to change the mode and see how the language is tokenized, parsed or compiled to JS. Or just run code directly.
+			</p>
 
-		<h1 class="text-2xl font-bold">Otium Language Demo</h1>
-		<p>
-			This is a very under construction demo that lets you evaluate Otium code. 
-		</p>
-			
-		<p>
-			You can use the toggle
-			to change the mode and see how the language is tokenized, parsed or compiled to JS. Or just run code directly.
-		</p>
+			<p>
+				For more information, check out the source code on <a href="https://github.com/upvalue/otium" target="_blank" rel="noopener noreferrer">GitHub</a>.
+			</p>
 		</div>
 		<DemoApp client:only="react" />
 	</div>

@@ -23,9 +23,13 @@ const { title, showNav = true } = Astro.props;
   <body class="min-h-screen flex flex-col p-4 sm:p-8 text-white">
     <header class="text-center mb-16 flex flex-col items-center justify-center gap-4">
       <div class="flex items-center justify-center gap-8">
+        <a href="/">
         <img src={otiumLogo.src} alt="Otium Logo" class="animate-float" />
+        </a>
         <div>
-          <h1 class="text-8xl font-bold text-white font-boldpixels">otium</h1>
+          <h1 class="text-8xl font-bold text-white font-boldpixels">
+            <a href="/">otium</a>
+          </h1>
         </div>
       </div>
       {showNav && (
@@ -35,6 +39,8 @@ const { title, showNav = true } = Astro.props;
           <a href="/demo">demo</a>
           / */}
           <a href="https://upvalue.io/writing/tag/otium">devlog</a>
+          / 
+          <a href="/lang-demo">lang demo</a>
           / 
           <a href="https://github.com/upvalue/otium">github</a>
         </nav>
