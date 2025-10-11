@@ -7,7 +7,12 @@ import DemoApp from '../components/LangDemo.tsx';
 	<noscript>
 		This demo requires JavaScript.
 	</noscript>
-	<div id="demo-container">
+	<div id="demo-container prose">
+		<h1 class="text-2xl font-bold mb-6">Otium Language Demo</h1>
+		<p class="mb-6">
+			This is a very under construction demo that lets you evaluate Otium code. You can use the toggle
+			to change the mode and see how the language is tokenized, parsed or compiled to JS. Or just run code directly.
+		</p>
 		<DemoApp client:only="react" />
 	</div>
 	<div id="error-fallback" style="display: none;" class="mx-auto text-red-400 bg-red-900/20 border border-red-500 rounded-lg">

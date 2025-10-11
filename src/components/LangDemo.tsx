@@ -75,8 +75,6 @@ export default function DemoApp() {
 
   return (
     <div className="min-w-[50vw] text-gray-100">
-      <h1 className="text-2xl font-bold mb-6">Otium Language Demo</h1>
-
       {/* Mode Toggle */}
       <div className="mb-6">
         <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
