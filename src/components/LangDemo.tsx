@@ -1,16 +1,76 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 import { Lexer } from '../../otium/lang/lexer';
 import { Parser } from '../../otium/lang/parser';
 import { translateString, PRELUDE } from '../../otium/lang/translate';
 import { EofValue } from '../../otium/lang/values';
 
-type DemoMode = 'lex' | 'parse' | 'translate';
+type DemoMode = 'lex' | 'parse' | 'translate' | 'eval';
+
+const EXAMPLE_PROGRAM = `
+// fib.ot -- the simple recursive fibonacci calculator
+fib := fn(n) {
+  if(n < 2) {
+    n
+  } {
+    fib(n - 1) + fib(n - 2)
+  }
+}
+
+print(fib(10))
+`.trim();
 
 export default function DemoApp() {
-  const [source, setSource] = useState('print("hello world")');
+  const [source, setSource] = useState(EXAMPLE_PROGRAM);
   const [output, setOutput] = useState('');
   const [mode, setMode] = useState<DemoMode>('translate');
+  const workerRef = useRef<Worker | null>(null);
+  const outputBufferRef = useRef<string[]>([]);
+
+  // Create web worker for eval mode
+  useEffect(() => {
+    const workerCode = `
+      const originalConsole = {
+        log: console.log,
+        error: console.error,
+        warn: console.warn
+      };
+
+      console.log = function(...args) {
+        postMessage({ type: 'log', args: args.map(a => String(a)) });
+      };
+
+      console.error = function(...args) {
+        postMessage({ type: 'error', args: args.map(a => String(a)) });
+      };
+
+      console.warn = function(...args) {
+        postMessage({ type: 'warn', args: args.map(a => String(a)) });
+      };
+
+      self.onmessage = function(e) {
+        if (e.data.type === 'execute') {
+          try {
+            eval(e.data.code);
+            postMessage({ type: 'done' });
+          } catch (error) {
+            postMessage({ type: 'error', args: [String(error)] });
+          }
+        }
+      };
+    `;
+
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const workerUrl = URL.createObjectURL(blob);
+    const worker = new Worker(workerUrl);
+
+    workerRef.current = worker;
+
+    return () => {
+      worker.terminate();
+      URL.revokeObjectURL(workerUrl);
+    };
+  }, []);
 
   const handleProcess = () => {
     try {
@@ -43,6 +103,35 @@ export default function DemoApp() {
 
 
         setOutput(result);
+      } else if (mode === 'eval') {
+        const translatedCode = translateString(source, 'input');
+
+        outputBufferRef.current = [];
+        setOutput('');
+
+        if (!workerRef.current) {
+          setOutput('Error: Worker not initialized');
+          return;
+        }
+
+        const worker = workerRef.current;
+
+        const handleMessage = (e: MessageEvent) => {
+          if (e.data.type === 'log' || e.data.type === 'warn') {
+            const line = e.data.args.join(' ');
+            outputBufferRef.current.push(line);
+            setOutput(outputBufferRef.current.join('\n'));
+          } else if (e.data.type === 'error') {
+            const line = 'Error: ' + e.data.args.join(' ');
+            outputBufferRef.current.push(line);
+            setOutput(outputBufferRef.current.join('\n'));
+          } else if (e.data.type === 'done') {
+            worker.removeEventListener('message', handleMessage);
+          }
+        };
+
+        worker.addEventListener('message', handleMessage);
+        worker.postMessage({ type: 'execute', code: translatedCode });
       }
     } catch (error) {
       setOutput(`Error: ${error}`);
@@ -54,6 +143,7 @@ export default function DemoApp() {
       case 'lex': return 'Lexer Output';
       case 'parse': return 'Parser Output';
       case 'translate': return 'JavaScript Output';
+      case 'eval': return 'Terminal Output';
     }
   };
 
@@ -62,6 +152,7 @@ export default function DemoApp() {
       case 'lex': return 'Tokenize';
       case 'parse': return 'Parse';
       case 'translate': return 'Translate';
+      case 'eval': return 'Run';
     }
   };
 
@@ -70,6 +161,7 @@ export default function DemoApp() {
       case 'lex': return 'Lexer tokens will appear here...';
       case 'parse': return 'Parse tree will appear here...';
       case 'translate': return 'JavaScript code will appear here...';
+      case 'eval': return 'Console output will appear here...';
     }
   };
 
@@ -78,7 +170,7 @@ export default function DemoApp() {
       {/* Mode Toggle */}
       <div className="mb-6">
         <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
-          {(['lex', 'parse', 'translate'] as const).map((modeOption) => (
+          {(['lex', 'parse', 'translate', 'eval'] as const).map((modeOption) => (
             <button
               key={modeOption}
               onClick={() => setMode(modeOption)}
