@@ -50,6 +50,17 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.15.1
+      - name: Build Otium OS WASM
+        run: |
+          cd otium/os
+          zig build -Dtarget-arch=wasm32
+          mkdir -p ../../public/wasm
+          cp zig-out/bin/kernel.elf.wasm ../../public/wasm/
+        working-directory: ${{ env.BUILD_PATH }}
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         working-directory: ${{ env.BUILD_PATH }}
