@@ -23,7 +23,7 @@ print(fib(10))
 export default function DemoApp() {
   const [source, setSource] = useState(EXAMPLE_PROGRAM);
   const [output, setOutput] = useState('');
-  const [mode, setMode] = useState<DemoMode>('translate');
+  const [mode, setMode] = useState<DemoMode>('eval');
   const workerRef = useRef<Worker | null>(null);
   const outputBufferRef = useRef<string[]>([]);
 
