@@ -16,7 +16,7 @@ export default function OSDemo() {
     async function loadWasm() {
       try {
         setError(null);
-        const response = await fetch('/wasm/kernel.elf.wasm');
+        const response = await fetch('/os-wasm/kernel.elf.wasm');
 
         if (!response.ok) {
           throw new Error(`Failed to load WASM: ${response.status} ${response.statusText}`);
