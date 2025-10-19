@@ -64,7 +64,7 @@ jobs:
         working-directory: ${{ env.BUILD_PATH }}
       - name: Verify build outputs
         run: |
-          test -f public/os-wasm/kernel.elf.wasm || exit 1
+          test -f public/os-wasm/kernel.wasm || exit 1
           test -f public/os-wasm/kernel.js || exit 1
           ls -lh public/os-wasm/
         working-directory: ${{ env.BUILD_PATH }}
