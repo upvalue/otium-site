@@ -23,9 +23,15 @@ export default defineConfig({
               {
                   label: 'Demos',
                   items: [
-                      { label: 'Operating System', slug: 'demos/os' },
-                      { label: 'Language', slug: 'demos/lang' },
+                      { label: 'Operating system demo', slug: 'demos/os' },
+                      { label: 'Language demo', slug: 'demos/lang' },
                   ],
+              },
+              {
+                label: 'Operating system',
+                items: [
+                    { label: 'About', slug: 'os/about', }
+                ],
               },
               /*{
                   label: 'Guides',
