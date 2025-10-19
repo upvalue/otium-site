@@ -170,6 +170,7 @@ export default function DemoApp() {
       {/* Mode Toggle */}
       <div className="mb-6">
         <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
+          <button className="hidden" />
           {(['lex', 'parse', 'translate', 'eval'] as const).map((modeOption) => (
             <button
               key={modeOption}

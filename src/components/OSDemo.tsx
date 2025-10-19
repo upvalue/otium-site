@@ -131,6 +131,8 @@ export default function OSDemo() {
     <div className="min-w-[50vw] text-gray-100">
       {/* Controls */}
       <div className="mb-4 flex gap-3">
+        <button className="hidden" />
+
         <button
           onClick={runWasm}
           disabled={!wasmReady || isRunning}

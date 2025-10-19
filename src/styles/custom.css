@@ -1,0 +1,39 @@
+/* Custom styles for otium.sh */
+
+@font-face {
+  font-family: 'BoldPixels';
+  src: url('/BoldPixels1.4.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Floating animation for logo */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Apply floating animation to the site logo */
+/*.site-title img {
+  animation: float 3s ease-in-out infinite;
+}*/
+
+.site-title {
+  gap: 0.5em;
+  cursor: pointer;
+  font-family: 'BoldPixels', sans-serif;
+  font-size: 2em;
+}
+
+.site-title img {
+  cursor: pointer;
+}
+
+/* Override Starlight's button styling for demo components */
+.sl-markdown-content button {
+  line-height: normal;
+}
