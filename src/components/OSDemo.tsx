@@ -187,6 +187,8 @@ export default function OSDemo() {
         The OS demo currently is a <a href="https://upvalue.io/posts/trialing-zig-and-rust-by-writing-a-tcl-interpreter/">tcl</a> interpreter with a few interactive commands you can execute.
       </p>
 
+      <p> Read a bit more in the <a href="/os/about">about</a> page.</p>
+
 
       {/* Controls */}
       <div className="mb-4 flex gap-3">

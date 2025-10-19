@@ -30,9 +30,28 @@ export default defineConfig({
               {
                 label: 'Operating system',
                 items: [
-                    { label: 'About', slug: 'os/about', }
+                    { label: 'About, building & running', slug: 'os/about', }
                 ],
               },
+              {
+                label: 'Language',
+                items: [    
+                    { label: 'About', slug: 'lang/guide'},
+                ]
+              },
+              {
+                label: 'Development log',
+                link: 'https://upvalue.io/posts/tag/otium/',
+              }
+
+              /*{
+                label: 'Language',
+                items: [
+                    { about: 'Guide', slug:'lang/guide'},
+                ]
+              }*/
+
+
               /*{
                   label: 'Guides',
                   items: [
