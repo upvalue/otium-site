@@ -50,16 +50,23 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
-      - name: Setup Zig
-        uses: mlugg/setup-zig@v2
+      - name: Install Nix
+        uses: cachix/install-nix-action@v24
         with:
-          version: 0.15.1
+          nix_path: nixpkgs=channel:nixos-unstable
       - name: Build Otium OS WASM
         run: |
           cd otium/os
-          zig build -Dtarget-arch=wasm32
+          nix-build default.nix
           mkdir -p ../../public/os-wasm
-          cp zig-out/bin/kernel.elf.wasm ../../public/os-wasm/
+          cp result/lib/kernel.wasm ../../public/os-wasm/kernel.elf.wasm
+          cp result/lib/kernel.js ../../public/os-wasm/
+        working-directory: ${{ env.BUILD_PATH }}
+      - name: Verify build outputs
+        run: |
+          test -f public/os-wasm/kernel.elf.wasm || exit 1
+          test -f public/os-wasm/kernel.js || exit 1
+          ls -lh public/os-wasm/
         working-directory: ${{ env.BUILD_PATH }}
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
