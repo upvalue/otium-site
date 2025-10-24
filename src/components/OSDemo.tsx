@@ -30,7 +30,8 @@ export default function OSDemo() {
         if (!window.OtiumOS) {
           // Create script element to load the Emscripten JS module
           const script = document.createElement('script');
-          script.src = '/os-wasm/kernel.js';
+          const gitSha = import.meta.env.PUBLIC_GIT_SHA || 'dev';
+          script.src = `/os-wasm/kernel.js?v=${gitSha}`;
           script.async = true;
 
           await new Promise<void>((resolve, reject) => {
@@ -94,7 +95,13 @@ export default function OSDemo() {
 
     try {
       // Create module configuration
+      const gitSha = import.meta.env.PUBLIC_GIT_SHA || 'dev';
       const Module = {
+        // Cache busting for wasm and data files
+        locateFile: (path: string) => {
+          return `/os-wasm/${path}?v=${gitSha}`;
+        },
+
         // Print function - called by the OS for console output
         print: (text: string) => {
           if (text === undefined || text === null) return;
