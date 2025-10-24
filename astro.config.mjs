@@ -30,7 +30,9 @@ export default defineConfig({
               {
                 label: 'Operating system',
                 items: [
-                    { label: 'About, building & running', slug: 'os/about', }
+                    { label: 'About, building & running', slug: 'os/about', },
+                    { label: 'Tcl shell reference', slug: 'os/shell', },
+                    { label: 'MessagePack & IPC', slug: 'os/msgpack-ipc', }
                 ],
               },
               {

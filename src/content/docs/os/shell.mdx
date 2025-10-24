@@ -1,0 +1,38 @@
+---
+title: Tcl shell reference
+---
+
+Currently, the primary program under the operating system is a shell that supports a
+very small subset of the [Tcl](https://en.wikipedia.org/wiki/Tcl) programming language,
+with extensions to support operating system specific calls.
+
+Once booted into the shell, you can write any arbitrary Tcl, though the shell currently
+only supports parsing a single line of input at a time . For example
+
+```tcl
+proc plus {x y} {[+ x y]}
+```
+
+is valid command line input, whereas
+
+```tcl
+proc plus {x y} {
+    [+ x y]
+}
+```
+
+will cause an error.
+
+The Tcl implementation is ultimately derived from
+[picol](http://oldblog.antirez.com/page/picol.html) which is also a good document to read,
+and there's an article that goes into the workings of the Tcl interpreter
+[here](https://upvalue.io/posts/trialing-zig-and-rust-by-writing-a-tcl-interpreter/).
+
+# Builtin commands
+
+## Core
+
+### Arithmetic and comparison
+
+The arithmetic commands `+ - / * >= <= = < > !=` are all supported. They are all binary,
+and there is no support for infix syntax (`expr`) at the moment. 
