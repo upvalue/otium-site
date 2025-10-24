@@ -73,7 +73,7 @@ jobs:
         working-directory: ${{ env.BUILD_PATH }}
       - name: Build with Astro
         run: |
-          pnpm astro build \
+          pnpm run build -- \
             --site "https://otium.sh" \
             --base "/"
         working-directory: ${{ env.BUILD_PATH }}
