@@ -59,13 +59,13 @@ jobs:
           cd otium/os
           nix-build default.nix
           mkdir -p ../../public/os-wasm
-          cp result/lib/kernel.wasm ../../public/os-wasm/kernel.wasm
-          cp result/lib/kernel.js ../../public/os-wasm/
+          cp result/lib/os.js ../../public/os-wasm/os.js
+          cp result/lib/os.wasm ../../public/os-wasm/
         working-directory: ${{ env.BUILD_PATH }}
       - name: Verify build outputs
         run: |
-          test -f public/os-wasm/kernel.wasm || exit 1
-          test -f public/os-wasm/kernel.js || exit 1
+          test -f public/os-wasm/os.js || exit 1
+          test -f public/os-wasm/os.wasm || exit 1
           ls -lh public/os-wasm/
         working-directory: ${{ env.BUILD_PATH }}
       - name: Install dependencies
