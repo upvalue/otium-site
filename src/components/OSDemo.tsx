@@ -17,6 +17,7 @@ export default function OSDemo() {
   const inputBufferRef = useRef<number[]>([]);
   const terminalRef = useRef<HTMLPreElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Load Emscripten module on mount
   useEffect(() => {
@@ -31,12 +32,12 @@ export default function OSDemo() {
           // Create script element to load the Emscripten JS module
           const script = document.createElement('script');
           const gitSha = import.meta.env.PUBLIC_GIT_SHA || 'dev';
-          script.src = `/os-wasm/kernel.js?v=${gitSha}`;
+          script.src = `/os-wasm/os.js?v=${gitSha}`;
           script.async = true;
 
           await new Promise<void>((resolve, reject) => {
             script.onload = () => resolve();
-            script.onerror = () => reject(new Error('Failed to load kernel.js'));
+            script.onerror = () => reject(new Error('Failed to load os.js'));
             document.body.appendChild(script);
           });
         }
@@ -121,6 +122,62 @@ export default function OSDemo() {
 
         // Input buffer for the OS to read from
         inputBuffer: inputBufferRef.current,
+
+        // Graphics callbacks for canvas rendering
+        graphicsInit: (width: number, height: number) => {
+          console.log(`Graphics init: ${width}x${height}`);
+          const canvas = canvasRef.current;
+          if (!canvas) {
+            console.error('Canvas not available');
+            return false;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          appendOutput(`Graphics initialized: ${width}x${height}\n`);
+          return true;
+        },
+
+        graphicsFlush: (pixels: Uint32Array, width: number, height: number) => {
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+
+          // Create ImageData and copy pixels
+          const imageData = ctx.createImageData(width, height);
+          const data = imageData.data;
+
+          // Convert from BGRA (0xAARRGGBB) to RGBA
+          for (let i = 0; i < width * height; i++) {
+            const pixel = pixels[i];
+            const offset = i * 4;
+
+            data[offset + 0] = (pixel >> 16) & 0xFF; // R
+            data[offset + 1] = (pixel >> 8) & 0xFF;  // G
+            data[offset + 2] = pixel & 0xFF;         // B
+            data[offset + 3] = (pixel >> 24) & 0xFF; // A
+          }
+
+          ctx.putImageData(imageData, 0, 0);
+        },
+
+        graphicsCleanup: () => {
+          console.log('Graphics cleanup');
+          // Clear the canvas
+          const canvas = canvasRef.current;
+          if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+          }
+        },
+
+        time_get: () => {
+          return Date.now();
+        },
 
         // Called when runtime is ready
         onRuntimeInitialized: () => {
@@ -286,6 +343,22 @@ export default function OSDemo() {
           </button>
         </div>
       )}
+
+      {/* Canvas for graphics output */}
+      <div className="mt-4 mb-4">
+        <label className="block text-sm font-medium mb-2 text-green-400">
+          Graphics Output
+        </label>
+        <canvas
+          ref={canvasRef}
+          className="border-2 border-green-700 rounded-md bg-black"
+          style={{
+            imageRendering: 'pixelated',
+            maxWidth: '100%',
+            height: 'auto'
+          }}
+        />
+      </div>
     </div>
   )
 }
