@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createWasmFilesystem, type WasmFilesystem } from '../lib/wasm-filesystem'
 
 declare global {
   interface Window {
@@ -18,14 +19,22 @@ export default function OSDemo() {
   const terminalRef = useRef<HTMLPreElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const filesystemRef = useRef<WasmFilesystem | null>(null);
 
-  // Load Emscripten module on mount
+  // Initialize filesystem and load Emscripten module on mount
   useEffect(() => {
     let mounted = true;
 
     async function loadEmscriptenModule() {
       try {
         setError(null);
+
+        // Initialize filesystem
+        if (!filesystemRef.current) {
+          const fs = createWasmFilesystem();
+          await fs.init();
+          filesystemRef.current = fs;
+        }
 
         // Check if the script is already loaded
         if (!window.OtiumOS) {
@@ -178,6 +187,17 @@ export default function OSDemo() {
         time_get: () => {
           return Date.now();
         },
+
+        // Filesystem callbacks
+        fsExists: (path: string) => filesystemRef.current?.fsExists(path) ?? null,
+        fsFileSize: (path: string) => filesystemRef.current?.fsFileSize(path) ?? -1,
+        fsReadFile: (path: string) => filesystemRef.current?.fsReadFile(path) ?? null,
+        fsWriteFile: (path: string, data: Uint8Array) =>
+          filesystemRef.current?.fsWriteFile(path, data) ?? false,
+        fsCreateFile: (path: string) => filesystemRef.current?.fsCreateFile(path) ?? false,
+        fsCreateDir: (path: string) => filesystemRef.current?.fsCreateDir(path) ?? false,
+        fsDeleteFile: (path: string) => filesystemRef.current?.fsDeleteFile(path) ?? false,
+        fsDeleteDir: (path: string) => filesystemRef.current?.fsDeleteDir(path) ?? false,
 
         // Called when runtime is ready
         onRuntimeInitialized: () => {

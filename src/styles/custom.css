@@ -37,3 +37,71 @@
 .sl-markdown-content button {
   line-height: normal;
 }
+
+/* ============================================
+   Force Dark Mode Only
+   ============================================ */
+
+/* Force dark mode by setting the data-theme attribute */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  color-scheme: dark;
+}
+
+/* ============================================
+   Unify Background Colors
+   ============================================ */
+
+/* Make sidebar and page background same as content background */
+:root {
+  --sl-color-bg-sidebar: var(--sl-color-bg);
+  --sl-color-bg-nav: var(--sl-color-bg);
+}
+
+/* Ensure consistent background across the page */
+.page {
+  background: var(--sl-color-bg);
+}
+
+body {
+  background: var(--sl-color-bg);
+}
+
+/* ============================================
+   Remove Borders
+   ============================================ */
+
+/* Remove border under page title/heading but keep spacing */
+.content-panel > :first-child,
+main > :first-child,
+.sl-markdown-content > h1:first-child {
+  border-bottom: none !important;
+}
+
+/* Remove border-top on content panels (the actual separator line) */
+.content-panel {
+  border-top: none !important;
+}
+
+/* Remove the separator bar in the header (was between GitHub and ThemeSelect) */
+.social-icons::after,
+.social-icons::before,
+.site-title::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Remove any vertical dividers in the header navigation */
+header nav::before,
+header nav::after,
+.header-actions::before,
+.header-actions::after,
+.right-group::before,
+.right-group::after {
+  display: none !important;
+  border: none !important;
+  content: none !important;
+}

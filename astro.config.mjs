@@ -14,6 +14,9 @@ export default defineConfig({
           logo: {
               src: './public/otium-favicon.png',
           },
+          components: {
+              ThemeSelect: './src/components/ThemeSelect.astro',
+          },
           customCss: [
               './src/styles/global.css',
               './src/styles/custom.css',
