@@ -27,47 +27,12 @@ export default defineConfig({
                   label: 'Demos',
                   items: [
                       { label: 'Operating system demo', slug: 'demos/os' },
-                      { label: 'Language demo', slug: 'demos/lang' },
                   ],
-              },
-              {
-                label: 'Operating system',
-                items: [
-                    { label: 'About, building & running', slug: 'os/about', },
-                    { label: 'Tcl shell reference', slug: 'os/shell', },
-                    { label: 'MessagePack & IPC', slug: 'os/msgpack-ipc', }
-                ],
-              },
-              {
-                label: 'Language',
-                items: [    
-                    { label: 'About', slug: 'lang/guide'},
-                ]
               },
               {
                 label: 'Development log',
                 link: 'https://upvalue.io/posts/tag/otium/',
               }
-
-              /*{
-                label: 'Language',
-                items: [
-                    { about: 'Guide', slug:'lang/guide'},
-                ]
-              }*/
-
-
-              /*{
-                  label: 'Guides',
-                  items: [
-                      // Each item here is one entry in the navigation menu.
-                      { label: 'Example Guide', slug: 'guides/example' },
-                  ],
-              },
-              {
-                  label: 'Reference',
-                  autogenerate: { directory: 'reference' },
-              },*/
           ],
       }),
 	],
