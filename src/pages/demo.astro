@@ -1,0 +1,11 @@
+---
+import DemoLayout from '../layouts/DemoLayout.astro';
+import OSDemo from '../components/OSDemo.tsx';
+---
+
+<DemoLayout title="Otium OS Demo">
+  <div class="flex flex-col items-center gap-4">
+    <h2 class="text-2xl font-bold text-white">Interactive OS Demo</h2>
+    <OSDemo client:load />
+  </div>
+</DemoLayout>

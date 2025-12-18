@@ -24,10 +24,8 @@ export default defineConfig({
           social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/upvalue/otium' }],
           sidebar: [
               {
-                  label: 'Demos',
-                  items: [
-                      { label: 'Operating system demo', slug: 'demos/os' },
-                  ],
+                label: 'Interactive Demo',
+                link: '/demo',
               },
               {
                 label: 'Development log',
