@@ -1,6 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
-import { createWasmFilesystem, type WasmFilesystem } from '../lib/wasm-filesystem'
-import { createKeyboardHandler } from '../lib/wasm-keyboard'
+import { useState, useRef, useEffect } from "react";
+import {
+  createWasmFilesystem,
+  type WasmFilesystem,
+} from "../lib/wasm-filesystem";
+import { createKeyboardHandler } from "../lib/wasm-keyboard";
 
 declare global {
   interface Window {
@@ -9,12 +12,15 @@ declare global {
 }
 
 export default function OSDemo() {
-  const [output, setOutput] = useState('');
+  const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wasmReady, setWasmReady] = useState(false);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [canvasFocused, setCanvasFocused] = useState(false);
+  const [activeTab, setActiveTab] = useState<"terminal" | "graphics">(
+    "terminal",
+  );
   const moduleInstanceRef = useRef<any>(null);
   const outputBufferRef = useRef<string[]>([]);
   const inputBufferRef = useRef<number[]>([]);
@@ -22,7 +28,9 @@ export default function OSDemo() {
   const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filesystemRef = useRef<WasmFilesystem | null>(null);
-  const keyboardHandlerRef = useRef<ReturnType<typeof createKeyboardHandler> | null>(null);
+  const keyboardHandlerRef = useRef<ReturnType<
+    typeof createKeyboardHandler
+  > | null>(null);
 
   // Initialize filesystem and load Emscripten module on mount
   useEffect(() => {
@@ -42,21 +50,23 @@ export default function OSDemo() {
         // Check if the script is already loaded
         if (!window.OtiumOS) {
           // Create script element to load the Emscripten JS module
-          const script = document.createElement('script');
-          const gitSha = import.meta.env.PUBLIC_GIT_SHA || 'dev';
+          const script = document.createElement("script");
+          const gitSha = import.meta.env.PUBLIC_GIT_SHA || "dev";
           script.src = `/os-wasm/os.js?v=${gitSha}`;
           script.async = true;
 
           await new Promise<void>((resolve, reject) => {
             script.onload = () => resolve();
-            script.onerror = () => reject(new Error('Failed to load os.js'));
+            script.onerror = () => reject(new Error("Failed to load os.js"));
             document.body.appendChild(script);
           });
         }
 
         if (mounted) {
           setWasmReady(true);
-          appendOutput('Emscripten module loaded successfully.\nClick "Run" to start the OS.\n\n');
+          appendOutput(
+            'Emscripten module loaded successfully.\nClick "Run" to start the OS.\n\n',
+          );
         }
       } catch (err) {
         if (mounted) {
@@ -90,7 +100,10 @@ export default function OSDemo() {
       if (!canvasFocused || !isRunning) return;
       e.preventDefault();
       e.stopPropagation();
-      const keepFocus = keyboardHandlerRef.current?.handleKeyEvent(e.code, true);
+      const keepFocus = keyboardHandlerRef.current?.handleKeyEvent(
+        e.code,
+        true,
+      );
       if (!keepFocus) {
         canvas.blur();
       }
@@ -103,29 +116,29 @@ export default function OSDemo() {
       keyboardHandlerRef.current?.handleKeyEvent(e.code, false);
     };
 
-    canvas.addEventListener('keydown', handleKeyDown, true);
-    canvas.addEventListener('keyup', handleKeyUp, true);
+    canvas.addEventListener("keydown", handleKeyDown, true);
+    canvas.addEventListener("keyup", handleKeyUp, true);
 
     return () => {
-      canvas.removeEventListener('keydown', handleKeyDown, true);
-      canvas.removeEventListener('keyup', handleKeyUp, true);
+      canvas.removeEventListener("keydown", handleKeyDown, true);
+      canvas.removeEventListener("keyup", handleKeyUp, true);
     };
   }, [canvasFocused, isRunning]);
 
   const appendOutput = (text: string) => {
     outputBufferRef.current.push(text);
-    setOutput(outputBufferRef.current.join(''));
+    setOutput(outputBufferRef.current.join(""));
   };
 
   const clearTerminal = () => {
     outputBufferRef.current = [];
-    setOutput('');
+    setOutput("");
     setError(null);
   };
 
   const runWasm = async () => {
     if (!wasmReady || !window.OtiumOS) {
-      setError('Module not loaded');
+      setError("Module not loaded");
       return;
     }
 
@@ -135,11 +148,11 @@ export default function OSDemo() {
 
     setIsRunning(true);
     setError(null);
-    appendOutput('> Starting Otium OS...\n\n');
+    appendOutput("> Starting Otium OS...\n\n");
 
     try {
       // Create module configuration
-      const gitSha = import.meta.env.PUBLIC_GIT_SHA || 'dev';
+      const gitSha = import.meta.env.PUBLIC_GIT_SHA || "dev";
       const Module = {
         // Cache busting for wasm and data files
         locateFile: (path: string) => {
@@ -149,7 +162,7 @@ export default function OSDemo() {
         // Print function - called by the OS for console output
         print: (text: string) => {
           if (text === undefined || text === null) return;
-          appendOutput(text + '\n');
+          appendOutput(text + "\n");
         },
 
         // Direct print without newline
@@ -159,7 +172,7 @@ export default function OSDemo() {
         },
 
         printErr: (text: string) => {
-          console.error('ERROR:', text);
+          console.error("ERROR:", text);
           appendOutput(`[ERROR] ${text}\n`);
         },
 
@@ -171,7 +184,7 @@ export default function OSDemo() {
           console.log(`Graphics init: ${width}x${height}`);
           const canvas = canvasRef.current;
           if (!canvas) {
-            console.error('Canvas not available');
+            console.error("Canvas not available");
             return false;
           }
 
@@ -185,7 +198,7 @@ export default function OSDemo() {
           const canvas = canvasRef.current;
           if (!canvas) return;
 
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           if (!ctx) return;
 
           // Create ImageData and copy pixels
@@ -197,21 +210,21 @@ export default function OSDemo() {
             const pixel = pixels[i];
             const offset = i * 4;
 
-            data[offset + 0] = (pixel >> 16) & 0xFF; // R
-            data[offset + 1] = (pixel >> 8) & 0xFF;  // G
-            data[offset + 2] = pixel & 0xFF;         // B
-            data[offset + 3] = (pixel >> 24) & 0xFF; // A
+            data[offset + 0] = (pixel >> 16) & 0xff; // R
+            data[offset + 1] = (pixel >> 8) & 0xff; // G
+            data[offset + 2] = pixel & 0xff; // B
+            data[offset + 3] = (pixel >> 24) & 0xff; // A
           }
 
           ctx.putImageData(imageData, 0, 0);
         },
 
         graphicsCleanup: () => {
-          console.log('Graphics cleanup');
+          console.log("Graphics cleanup");
           // Clear the canvas
           const canvas = canvasRef.current;
           if (canvas) {
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext("2d");
             if (ctx) {
               ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
@@ -223,19 +236,26 @@ export default function OSDemo() {
         },
 
         // Filesystem callbacks
-        fsExists: (path: string) => filesystemRef.current?.fsExists(path) ?? null,
-        fsFileSize: (path: string) => filesystemRef.current?.fsFileSize(path) ?? -1,
-        fsReadFile: (path: string) => filesystemRef.current?.fsReadFile(path) ?? null,
+        fsExists: (path: string) =>
+          filesystemRef.current?.fsExists(path) ?? null,
+        fsFileSize: (path: string) =>
+          filesystemRef.current?.fsFileSize(path) ?? -1,
+        fsReadFile: (path: string) =>
+          filesystemRef.current?.fsReadFile(path) ?? null,
         fsWriteFile: (path: string, data: Uint8Array) =>
           filesystemRef.current?.fsWriteFile(path, data) ?? false,
-        fsCreateFile: (path: string) => filesystemRef.current?.fsCreateFile(path) ?? false,
-        fsCreateDir: (path: string) => filesystemRef.current?.fsCreateDir(path) ?? false,
-        fsDeleteFile: (path: string) => filesystemRef.current?.fsDeleteFile(path) ?? false,
-        fsDeleteDir: (path: string) => filesystemRef.current?.fsDeleteDir(path) ?? false,
+        fsCreateFile: (path: string) =>
+          filesystemRef.current?.fsCreateFile(path) ?? false,
+        fsCreateDir: (path: string) =>
+          filesystemRef.current?.fsCreateDir(path) ?? false,
+        fsDeleteFile: (path: string) =>
+          filesystemRef.current?.fsDeleteFile(path) ?? false,
+        fsDeleteDir: (path: string) =>
+          filesystemRef.current?.fsDeleteDir(path) ?? false,
 
         // Keyboard callbacks
         keyboardInit: () => {
-          console.log('[OSDemo] Initializing keyboard handler');
+          console.log("[OSDemo] Initializing keyboard handler");
           keyboardHandlerRef.current = createKeyboardHandler();
           return true;
         },
@@ -245,14 +265,14 @@ export default function OSDemo() {
         },
 
         keyboardCleanup: () => {
-          console.log('[OSDemo] Cleaning up keyboard handler');
+          console.log("[OSDemo] Cleaning up keyboard handler");
           keyboardHandlerRef.current?.cleanup();
         },
 
         // Called when runtime is ready
         onRuntimeInitialized: () => {
-          appendOutput('Runtime initialized. Ready for input.\n');
-          appendOutput('Type commands and press Enter.\n\n');
+          appendOutput("Runtime initialized. Ready for input.\n");
+          appendOutput("Type commands and press Enter.\n\n");
         },
 
         // Handle abort
@@ -265,7 +285,7 @@ export default function OSDemo() {
 
         // Exit handler
         exit: () => {
-          appendOutput('\n> OS exited.\n');
+          appendOutput("\n> OS exited.\n");
           setIsRunning(false);
         },
 
@@ -277,7 +297,6 @@ export default function OSDemo() {
       // Create and run the module
       const instance = await window.OtiumOS(Module);
       moduleInstanceRef.current = instance;
-
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       setError(errorMsg);
@@ -300,7 +319,7 @@ export default function OSDemo() {
     appendOutput(`> ${inputValue}\n`);
 
     // Clear the input field
-    setInputValue('');
+    setInputValue("");
   };
 
   const stopProgram = () => {
@@ -308,53 +327,47 @@ export default function OSDemo() {
       try {
         moduleInstanceRef.current.exit();
       } catch (err) {
-        console.error('Error stopping program:', err);
+        console.error("Error stopping program:", err);
       }
     }
     setIsRunning(false);
-    appendOutput('\n> Program stopped by user.\n');
+    appendOutput("\n> Program stopped by user.\n");
   };
 
   return (
-    <div className="min-w-[50vw] text-gray-100">
-      <p>
-        The OS demo currently is a <a href="https://upvalue.io/posts/trialing-zig-and-rust-by-writing-a-tcl-interpreter/">tcl</a> interpreter with a few interactive commands you can execute.
-      </p>
-
-      <p> Read a bit more in the <a href="/os/about">about</a> page.</p>
-
-
+    <div className="os-demo min-w-[50vw] text-gray-100">
       {/* Controls */}
-      <div className="mb-4 flex gap-3">
-        <button className="hidden" />
-
+      <div className="mb-4 flex gap-2">
         <button
           onClick={runWasm}
           disabled={!wasmReady || isRunning}
-          className={`px-6 py-2 rounded-md font-medium transition-colors ${!wasmReady || isRunning
-            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-            : 'bg-green-700 hover:bg-green-600 text-white'
-            }`}
+          className={`px-4 py-1.5 font-medium rounded-md border ${
+            !wasmReady || isRunning
+              ? "bg-gray-800 text-gray-500 border-gray-700"
+              : "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500"
+          }`}
         >
-          {isRunning ? 'Running...' : 'Run'}
+          {isRunning ? "Running..." : "Run"}
         </button>
         <button
           onClick={stopProgram}
           disabled={!isRunning}
-          className={`px-6 py-2 rounded-md font-medium transition-colors ${!isRunning
-            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-            : 'bg-red-700 hover:bg-red-600 text-white'
-            }`}
+          className={`px-4 py-1.5 font-medium rounded-md border ${
+            !isRunning
+              ? "bg-gray-800 text-gray-500 border-gray-700"
+              : "bg-red-600 hover:bg-red-500 text-white border-red-500"
+          }`}
         >
           Stop
         </button>
         <button
           onClick={clearTerminal}
           disabled={isRunning}
-          className={`px-6 py-2 rounded-md font-medium transition-colors ${isRunning
-            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-            : 'bg-gray-700 hover:bg-gray-600 text-white'
-            }`}
+          className={`px-4 py-1.5 font-medium rounded-md border ${
+            isRunning
+              ? "bg-gray-800 text-gray-500 border-gray-700"
+              : "bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+          }`}
         >
           Clear
         </button>
@@ -367,88 +380,104 @@ export default function OSDemo() {
         </div>
       )}
 
-      {/* Terminal Display */}
-      <div className="mb-2">
-        <label htmlFor="terminal" className="block text-sm font-medium mb-2 text-green-400">
-          Terminal Output
-        </label>
+      {/* Tabs */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setActiveTab("terminal")}
+          className={`px-4 py-1.5 font-medium rounded-md border ${
+            activeTab === "terminal"
+              ? "text-white bg-sky-600 border-sky-500"
+              : "text-gray-300 bg-gray-800 border-gray-600 hover:bg-gray-700 hover:text-white"
+          }`}
+        >
+          Terminal
+        </button>
+        <button
+          onClick={() => setActiveTab("graphics")}
+          className={`px-4 py-1.5 font-medium rounded-md border ${
+            activeTab === "graphics"
+              ? "text-white bg-sky-600 border-sky-500"
+              : "text-gray-300 bg-gray-800 border-gray-600 hover:bg-gray-700 hover:text-white"
+          }`}
+        >
+          Graphics
+        </button>
       </div>
-      <pre
-        id="terminal"
-        ref={terminalRef}
-        className="w-full h-96 p-4 bg-black border-2 border-green-700 rounded-md font-mono text-sm text-green-400 overflow-auto whitespace-pre-wrap"
-        style={{
-          textShadow: '0 0 5px rgba(0, 255, 0, 0.5)',
-          fontFamily: 'Courier New, monospace'
-        }}
-      >
-        {output || '> Ready. Click "Run" to start the OS.\n'}
-      </pre>
 
-      {/* Input Field */}
-      {isRunning && (
-        <div className="mt-4 flex gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleInputSubmit();
-              }
-            }}
-            placeholder="Type command and press Enter..."
-            className="flex-1 px-4 py-2 bg-black border-2 border-green-700 rounded-md font-mono text-sm text-green-400 placeholder-green-600 focus:outline-none focus:border-green-500"
-            style={{
-              textShadow: '0 0 5px rgba(0, 255, 0, 0.3)',
-              fontFamily: 'Courier New, monospace'
-            }}
-          />
-          <button
-            onClick={handleInputSubmit}
-            className="px-6 py-2 bg-green-700 hover:bg-green-600 text-white rounded-md font-medium transition-colors"
-          >
-            Send
-          </button>
-        </div>
-      )}
+      {/* Terminal Tab */}
+      <div className={activeTab === "terminal" ? "block" : "hidden"}>
+        <pre
+          id="terminal"
+          ref={terminalRef}
+          className="w-full h-64 p-4 bg-black border border-gray-600 rounded-md font-mono text-sm text-white overflow-auto whitespace-pre-wrap"
+          style={{
+            fontFamily: "Courier New, monospace",
+          }}
+        >
+          {output || '> Ready. Click "Run" to start the OS.\n'}
+        </pre>
 
-      {/* Canvas for graphics output */}
-      <div className="mt-4 mb-4">
-        <label className="block text-sm font-medium mb-2 text-green-400">
-          Graphics Output
-        </label>
-        <div className="relative inline-block">
-          <canvas
-            ref={canvasRef}
-            tabIndex={0}
-            onFocus={() => setCanvasFocused(true)}
-            onBlur={() => setCanvasFocused(false)}
-            className={`border-2 rounded-md bg-black outline-none transition-all ${
-              canvasFocused
-                ? 'border-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]'
-                : 'border-green-700'
-            }`}
-            style={{
-              imageRendering: 'pixelated',
-              maxWidth: '100%',
-              height: 'auto'
-            }}
-          />
-          {/* Focus overlay - shown when canvas is not focused */}
-          {isRunning && !canvasFocused && (
-            <div
-              className="absolute inset-0 flex items-center justify-center cursor-pointer rounded-md"
-              onClick={() => canvasRef.current?.focus()}
+        {/* Input Field */}
+        {isRunning && (
+          <div className="mt-4 flex gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleInputSubmit();
+                }
+              }}
+              placeholder="Type command and press Enter..."
+              className="flex-1 px-4 py-2 bg-black border border-gray-600 rounded-md font-mono text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-400"
+              style={{
+                fontFamily: "Courier New, monospace",
+              }}
+            />
+            <button
+              onClick={handleInputSubmit}
+              className="px-4 py-1.5 font-medium rounded-md border bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
             >
-              <span className="text-green-400 text-sm font-medium px-4 py-2 bg-black/80 rounded border border-green-700">
-                Click to capture keyboard (Esc/Tab to release)
-              </span>
-            </div>
-          )}
-        </div>
+              Send
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Graphics Tab */}
+      <div
+        className={`relative ${activeTab === "graphics" ? "inline-block" : "hidden"}`}
+      >
+        <canvas
+          ref={canvasRef}
+          tabIndex={0}
+          onFocus={() => setCanvasFocused(true)}
+          onBlur={() => setCanvasFocused(false)}
+          className={`border rounded-md bg-black outline-none transition-all ${
+            canvasFocused
+              ? "border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+              : "border-gray-600"
+          }`}
+          style={{
+            imageRendering: "pixelated",
+            maxWidth: "100%",
+            height: "auto",
+          }}
+        />
+        {/* Focus overlay - shown when canvas is not focused */}
+        {isRunning && !canvasFocused && (
+          <div
+            className="absolute inset-0 flex items-center justify-center cursor-pointer rounded-md"
+            onClick={() => canvasRef.current?.focus()}
+          >
+            <span className="text-white text-sm font-medium px-4 py-2 bg-black/80 rounded border border-gray-600">
+              Click to capture keyboard (Tab to release)
+            </span>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }

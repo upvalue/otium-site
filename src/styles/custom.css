@@ -1,15 +1,16 @@
 /* Custom styles for otium.sh */
 
 @font-face {
-  font-family: 'BoldPixels';
-  src: url('/BoldPixels1.4.ttf') format('truetype');
+  font-family: "BoldPixels";
+  src: url("/BoldPixels1.4.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
 /* Floating animation for logo */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -25,7 +26,7 @@
 .site-title {
   gap: 0.5em;
   cursor: pointer;
-  font-family: 'BoldPixels', sans-serif;
+  font-family: "BoldPixels", sans-serif;
   font-size: 2em;
 }
 
@@ -33,9 +34,23 @@
   cursor: pointer;
 }
 
-/* Override Starlight's button styling for demo components */
-.sl-markdown-content button {
-  line-height: normal;
+/* Override Starlight's button styling for OS demo component */
+.os-demo button {
+  /* Reset Starlight's specific overrides */
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  text-decoration: none;
+  /* Let Tailwind handle the rest */
+}
+
+.os-demo button:disabled {
+  cursor: not-allowed;
+}
+
+.os-demo button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* ============================================
