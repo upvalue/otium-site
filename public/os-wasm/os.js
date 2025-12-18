@@ -7,11 +7,55 @@ var OtiumOS = (() => {
   // When MODULARIZE this JS may be executed later,
   // after document.currentScript is gone, so we save it.
   // In EXPORT_ES6 mode we can just use 'import.meta.url'.
-  var _scriptName = typeof document != 'undefined' ? document.currentScript?.src : undefined;
+  var _scriptName = globalThis.document?.currentScript?.src;
   return async function(moduleArg = {}) {
     var moduleRtn;
 
 // include: shell.js
+// include: minimum_runtime_check.js
+(function() {
+  // "30.0.0" -> 300000
+  function humanReadableVersionToPacked(str) {
+    str = str.split('-')[0]; // Remove any trailing part from e.g. "12.53.3-alpha"
+    var vers = str.split('.').slice(0, 3);
+    while(vers.length < 3) vers.push('00');
+    vers = vers.map((n, i, arr) => n.padStart(2, '0'));
+    return vers.join('');
+  }
+  // 300000 -> "30.0.0"
+  var packedVersionToHumanReadable = n => [n / 10000 | 0, (n / 100 | 0) % 100, n % 100].join('.');
+
+  var TARGET_NOT_SUPPORTED = 2147483647;
+
+  // Note: We use a typeof check here instead of optional chaining using
+  // globalThis because older browsers might not have globalThis defined.
+  var currentNodeVersion = typeof process !== 'undefined' && process.versions?.node ? humanReadableVersionToPacked(process.versions.node) : TARGET_NOT_SUPPORTED;
+  if (currentNodeVersion < 160000) {
+    throw new Error(`This emscripten-generated code requires node v${ packedVersionToHumanReadable(160000) } (detected v${packedVersionToHumanReadable(currentNodeVersion)})`);
+  }
+
+  var userAgent = typeof navigator !== 'undefined' && navigator.userAgent;
+  if (!userAgent) {
+    return;
+  }
+
+  var currentSafariVersion = userAgent.includes("Safari/") && userAgent.match(/Version\/(\d+\.?\d*\.?\d*)/) ? humanReadableVersionToPacked(userAgent.match(/Version\/(\d+\.?\d*\.?\d*)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentSafariVersion < 150000) {
+    throw new Error(`This emscripten-generated code requires Safari v${ packedVersionToHumanReadable(150000) } (detected v${currentSafariVersion})`);
+  }
+
+  var currentFirefoxVersion = userAgent.match(/Firefox\/(\d+(?:\.\d+)?)/) ? parseFloat(userAgent.match(/Firefox\/(\d+(?:\.\d+)?)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentFirefoxVersion < 79) {
+    throw new Error(`This emscripten-generated code requires Firefox v79 (detected v${currentFirefoxVersion})`);
+  }
+
+  var currentChromeVersion = userAgent.match(/Chrome\/(\d+(?:\.\d+)?)/) ? parseFloat(userAgent.match(/Chrome\/(\d+(?:\.\d+)?)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentChromeVersion < 85) {
+    throw new Error(`This emscripten-generated code requires Chrome v85 (detected v${currentChromeVersion})`);
+  }
+})();
+
+// end include: minimum_runtime_check.js
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
 // 1. Not defined. We create it here
@@ -31,11 +75,11 @@ var Module = moduleArg;
 // setting the ENVIRONMENT setting at compile time (see settings.js).
 
 // Attempt to auto-detect the environment
-var ENVIRONMENT_IS_WEB = typeof window == 'object';
-var ENVIRONMENT_IS_WORKER = typeof WorkerGlobalScope != 'undefined';
+var ENVIRONMENT_IS_WEB = !!globalThis.window;
+var ENVIRONMENT_IS_WORKER = !!globalThis.WorkerGlobalScope;
 // N.b. Electron.js environment is simultaneously a NODE-environment, but
 // also a web environment.
-var ENVIRONMENT_IS_NODE = typeof process == 'object' && process.versions?.node && process.type != 'renderer';
+var ENVIRONMENT_IS_NODE = globalThis.process?.versions?.node && globalThis.process?.type != 'renderer';
 var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
 
 // --pre-jses are emitted after the Module integration code, so that they can
@@ -68,15 +112,8 @@ function locateFile(path) {
 var readAsync, readBinary;
 
 if (ENVIRONMENT_IS_NODE) {
-  const isNode = typeof process == 'object' && process.versions?.node && process.type != 'renderer';
+  const isNode = globalThis.process?.versions?.node && globalThis.process?.type != 'renderer';
   if (!isNode) throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
-
-  var nodeVersion = process.versions.node;
-  var numericVersion = nodeVersion.split('.').slice(0, 3);
-  numericVersion = (numericVersion[0] * 10000) + (numericVersion[1] * 100) + (numericVersion[2].split('-')[0] * 1);
-  if (numericVersion < 160000) {
-    throw new Error('This emscripten-generated code requires node v16.0.0 (detected v' + nodeVersion + ')');
-  }
 
   // These modules will usually be used on Node.js. Load them eagerly to avoid
   // the complexity of lazy-loading.
@@ -115,9 +152,6 @@ readAsync = async (filename, binary = true) => {
 } else
 if (ENVIRONMENT_IS_SHELL) {
 
-  const isNode = typeof process == 'object' && process.versions?.node && process.type != 'renderer';
-  if (isNode || typeof window == 'object' || typeof WorkerGlobalScope != 'undefined') throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
-
 } else
 
 // Note that this includes Node.js workers when relevant (pthreads is enabled).
@@ -131,7 +165,7 @@ if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
     // infer anything from them.
   }
 
-  if (!(typeof window == 'object' || typeof WorkerGlobalScope != 'undefined')) throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
+  if (!(globalThis.window || globalThis.WorkerGlobalScope)) throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
 
   {
 // include: web_or_worker_shell_read.js
@@ -212,7 +246,7 @@ assert(!ENVIRONMENT_IS_SHELL, 'shell environment detected but not enabled at bui
 
 var wasmBinary;
 
-if (typeof WebAssembly != 'object') {
+if (!globalThis.WebAssembly) {
   err('no native wasm support detected');
 }
 
@@ -308,7 +342,7 @@ function dbg(...args) {
   var h16 = new Int16Array(1);
   var h8 = new Int8Array(h16.buffer);
   h16[0] = 0x6373;
-  if (h8[0] !== 0x73 || h8[1] !== 0x63) throw 'Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)';
+  if (h8[0] !== 0x73 || h8[1] !== 0x63) abort('Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)');
 })();
 
 function consumedModuleProp(prop) {
@@ -339,6 +373,7 @@ function isExportedByForceFilesystem(name) {
   return name === 'FS_createPath' ||
          name === 'FS_createDataFile' ||
          name === 'FS_createPreloadedFile' ||
+         name === 'FS_preloadFile' ||
          name === 'FS_unlink' ||
          name === 'addRunDependency' ||
          // The old FS has some functionality that WasmFS lacks.
@@ -347,48 +382,7 @@ function isExportedByForceFilesystem(name) {
          name === 'removeRunDependency';
 }
 
-/**
- * Intercept access to a global symbol.  This enables us to give informative
- * warnings/errors when folks attempt to use symbols they did not include in
- * their build, or no symbols that no longer exist.
- */
-function hookGlobalSymbolAccess(sym, func) {
-  // In MODULARIZE mode the generated code runs inside a function scope and not
-  // the global scope, and JavaScript does not provide access to function scopes
-  // so we cannot dynamically modify the scrope using `defineProperty` in this
-  // case.
-  //
-  // In this mode we simply ignore requests for `hookGlobalSymbolAccess`. Since
-  // this is a debug-only feature, skipping it is not major issue.
-}
-
-function missingGlobal(sym, msg) {
-  hookGlobalSymbolAccess(sym, () => {
-    warnOnce(`\`${sym}\` is not longer defined by emscripten. ${msg}`);
-  });
-}
-
-missingGlobal('buffer', 'Please use HEAP8.buffer or wasmMemory.buffer');
-missingGlobal('asm', 'Please use wasmExports instead');
-
 function missingLibrarySymbol(sym) {
-  hookGlobalSymbolAccess(sym, () => {
-    // Can't `abort()` here because it would break code that does runtime
-    // checks.  e.g. `if (typeof SDL === 'undefined')`.
-    var msg = `\`${sym}\` is a library symbol and not included by default; add it to your library.js __deps or to DEFAULT_LIBRARY_FUNCS_TO_INCLUDE on the command line`;
-    // DEFAULT_LIBRARY_FUNCS_TO_INCLUDE requires the name as it appears in
-    // library.js, which means $name for a JS name with no prefix, or name
-    // for a JS name like _name.
-    var librarySymbol = sym;
-    if (!librarySymbol.startsWith('_')) {
-      librarySymbol = '$' + sym;
-    }
-    msg += ` (e.g. -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE='${librarySymbol}')`;
-    if (isExportedByForceFilesystem(sym)) {
-      msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
-    }
-    warnOnce(msg);
-  });
 
   // Any symbol that is not included from the JS library is also (by definition)
   // not exported on the Module object.
@@ -405,7 +399,7 @@ function unexportedRuntimeSymbol(sym) {
           msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
         }
         abort(msg);
-      }
+      },
     });
   }
 }
@@ -414,9 +408,6 @@ function unexportedRuntimeSymbol(sym) {
 var readyPromiseResolve, readyPromiseReject;
 
 // Memory management
-
-var wasmMemory;
-
 var
 /** @type {!Int8Array} */
   HEAP8,
@@ -464,7 +455,7 @@ function updateMemoryViews() {
 // include: memoryprofiler.js
 // end include: memoryprofiler.js
 // end include: runtime_common.js
-assert(typeof Int32Array != 'undefined' && typeof Float64Array !== 'undefined' && Int32Array.prototype.subarray != undefined && Int32Array.prototype.set != undefined,
+assert(globalThis.Int32Array && globalThis.Float64Array && Int32Array.prototype.subarray && Int32Array.prototype.set,
        'JS engine does not provide full typed array support');
 
 function preRun() {
@@ -513,76 +504,6 @@ function postRun() {
   // Begin ATPOSTRUNS hooks
   callRuntimeCallbacks(onPostRuns);
   // End ATPOSTRUNS hooks
-}
-
-// A counter of dependencies for calling run(). If we need to
-// do asynchronous work before running, increment this and
-// decrement it. Incrementing must happen in a place like
-// Module.preRun (used by emcc to add file preloading).
-// Note that you can add dependencies in preRun, even though
-// it happens right before run - run will be postponed until
-// the dependencies are met.
-var runDependencies = 0;
-var dependenciesFulfilled = null; // overridden to take different actions when all run dependencies are fulfilled
-var runDependencyTracking = {};
-var runDependencyWatcher = null;
-
-function addRunDependency(id) {
-  runDependencies++;
-
-  Module['monitorRunDependencies']?.(runDependencies);
-
-  if (id) {
-    assert(!runDependencyTracking[id]);
-    runDependencyTracking[id] = 1;
-    if (runDependencyWatcher === null && typeof setInterval != 'undefined') {
-      // Check for missing dependencies every few seconds
-      runDependencyWatcher = setInterval(() => {
-        if (ABORT) {
-          clearInterval(runDependencyWatcher);
-          runDependencyWatcher = null;
-          return;
-        }
-        var shown = false;
-        for (var dep in runDependencyTracking) {
-          if (!shown) {
-            shown = true;
-            err('still waiting on run dependencies:');
-          }
-          err(`dependency: ${dep}`);
-        }
-        if (shown) {
-          err('(end of list)');
-        }
-      }, 10000);
-    }
-  } else {
-    err('warning: run dependency added without ID');
-  }
-}
-
-function removeRunDependency(id) {
-  runDependencies--;
-
-  Module['monitorRunDependencies']?.(runDependencies);
-
-  if (id) {
-    assert(runDependencyTracking[id]);
-    delete runDependencyTracking[id];
-  } else {
-    err('warning: run dependency removed without ID');
-  }
-  if (runDependencies == 0) {
-    if (runDependencyWatcher !== null) {
-      clearInterval(runDependencyWatcher);
-      runDependencyWatcher = null;
-    }
-    if (dependenciesFulfilled) {
-      var callback = dependenciesFulfilled;
-      dependenciesFulfilled = null;
-      callback(); // can add another dependenciesFulfilled
-    }
-  }
 }
 
 /** @param {string|number=} what */
@@ -655,7 +576,7 @@ function createExportWrapper(name, nargs) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-    return locateFile('os.wasm');
+  return locateFile('os.wasm');
 }
 
 function getBinarySync(file) {
@@ -665,6 +586,8 @@ function getBinarySync(file) {
   if (readBinary) {
     return readBinary(file);
   }
+  // Throwing a plain string here, even though it not normally adviables since
+  // this gets turning into an `abort` in instantiateArrayBuffer.
   throw 'both async and sync fetching of the wasm failed';
 }
 
@@ -693,8 +616,8 @@ async function instantiateArrayBuffer(binaryFile, imports) {
     err(`failed to asynchronously prepare wasm: ${reason}`);
 
     // Warn on some common problems.
-    if (isFileURI(wasmBinaryFile)) {
-      err(`warning: Loading from a file URI (${wasmBinaryFile}) is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing`);
+    if (isFileURI(binaryFile)) {
+      err(`warning: Loading from a file URI (${binaryFile}) is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing`);
     }
     abort(reason);
   }
@@ -733,10 +656,11 @@ function getWasmImports() {
   // the Promise API on the import side.
   Asyncify.instrumentWasmImports(wasmImports);
   // prepare imports
-  return {
+  var imports = {
     'env': wasmImports,
     'wasi_snapshot_preview1': wasmImports,
-  }
+  };
+  return imports;
 }
 
 // Create the wasm instance.
@@ -751,19 +675,12 @@ async function createWasm() {
 
     wasmExports = Asyncify.instrumentWasmExports(wasmExports);
 
-    
+    assignWasmExports(wasmExports);
 
-    wasmMemory = wasmExports['memory'];
-    
-    assert(wasmMemory, 'memory not found in wasm exports');
     updateMemoryViews();
 
-    assignWasmExports(wasmExports);
-    removeRunDependency('wasm-instantiate');
     return wasmExports;
   }
-  // wait for the pthread pool (if any)
-  addRunDependency('wasm-instantiate');
 
   // Prefer streaming instantiation if available.
   // Async compilation can be confusing when an error on the page overwrites Module
@@ -791,8 +708,8 @@ async function createWasm() {
   if (Module['instantiateWasm']) {
     return new Promise((resolve, reject) => {
       try {
-        Module['instantiateWasm'](info, (mod, inst) => {
-          resolve(receiveInstance(mod, inst));
+        Module['instantiateWasm'](info, (inst, mod) => {
+          resolve(receiveInstance(inst, mod));
         });
       } catch(e) {
         err(`Module.instantiateWasm callback failed with error: ${e}`);
@@ -850,6 +767,7 @@ async function createWasm() {
       return f(ptr, ...args);
     };
   var dynCall = (sig, ptr, args = [], promising = false) => {
+      assert(ptr, `null function pointer in dynCall`);
       assert(!promising, 'async dynCall is not supported in this mode')
       var rtn = dynCallLegacy(sig, ptr, args);
   
@@ -883,8 +801,8 @@ async function createWasm() {
   var noExitRuntime = true;
 
   var ptrToString = (ptr) => {
-      assert(typeof ptr === 'number');
-      // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
+      assert(typeof ptr === 'number', `ptrToString expects a number, got ${typeof ptr}`);
+      // Convert to 32-bit unsigned value
       ptr >>>= 0;
       return '0x' + ptr.toString(16).padStart(8, '0');
     };
@@ -923,7 +841,9 @@ async function createWasm() {
       }
     };
 
-  var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder() : undefined;
+  
+
+  var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   
   var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
       var maxIdx = idx + maxBytesToRead;
@@ -1045,7 +965,6 @@ async function createWasm() {
     };
   
   
-  /** @suppress {duplicate } */
   /** @param {boolean|number=} implicit */
   var exitJS = (status, implicit) => {
       EXITSTATUS = status;
@@ -1086,6 +1005,8 @@ async function createWasm() {
       }
     };
   
+  var createNamedFunction = (name, func) => Object.defineProperty(func, 'name', { value: name });
+  
   var runtimeKeepalivePush = () => {
       runtimeKeepaliveCounter += 1;
     };
@@ -1124,7 +1045,7 @@ async function createWasm() {
                     !isAsyncifyImport &&
                     !changedToDisabled &&
                     !ignoredInvoke) {
-                  throw new Error(`import ${x} was not in ASYNCIFY_IMPORTS, but changed the state`);
+                  abort(`import ${x} was not in ASYNCIFY_IMPORTS, but changed the state`);
                 }
               }
             };
@@ -1145,6 +1066,7 @@ async function createWasm() {
           }
         };
         Asyncify.funcWrappers.set(original, wrapper);
+        wrapper = createNamedFunction(`__asyncify_wrapper_${original.name}`, wrapper);
         return wrapper;
       },
   instrumentWasmExports(exports) {
@@ -1792,6 +1714,13 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   assert(typeof Module['wasmMemory'] == 'undefined', 'Use of `wasmMemory` detected.  Use -sIMPORTED_MEMORY to define wasmMemory externally');
   assert(typeof Module['INITIAL_MEMORY'] == 'undefined', 'Detected runtime INITIAL_MEMORY setting.  Use -sIMPORTED_MEMORY to define wasmMemory dynamically');
 
+  if (Module['preInit']) {
+    if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
+    while (Module['preInit'].length > 0) {
+      Module['preInit'].shift()();
+    }
+  }
+  consumedModuleProp('preInit');
 }
 
 // Begin runtime exports
@@ -1825,12 +1754,13 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'getExecutableName',
   'autoResumeAudioContext',
   'getDynCaller',
-  'asmjsMangle',
   'asyncLoad',
+  'asmjsMangle',
   'mmapAlloc',
   'HandleAllocator',
-  'getNativeTypeSize',
   'getUniqueRunDependency',
+  'addRunDependency',
+  'removeRunDependency',
   'addOnInit',
   'addOnPostCtor',
   'addOnPreMain',
@@ -1924,6 +1854,7 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'getSocketFromFD',
   'getSocketAddress',
   'FS_createPreloadedFile',
+  'FS_preloadFile',
   'FS_modeStringToFlags',
   'FS_getMode',
   'FS_stdin_getChar',
@@ -1931,9 +1862,6 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   '_setNetworkCallback',
   'heapObjectForWebGLType',
   'toTypedArrayIndex',
-  'webgl_enable_ANGLE_instanced_arrays',
-  'webgl_enable_OES_vertex_array_object',
-  'webgl_enable_WEBGL_draw_buffers',
   'webgl_enable_WEBGL_multi_draw',
   'webgl_enable_EXT_polygon_offset_clamp',
   'webgl_enable_EXT_clip_control',
@@ -1955,20 +1883,20 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'allocate',
   'writeStringToMemory',
   'writeAsciiToMemory',
+  'allocateUTF8',
+  'allocateUTF8OnStack',
   'demangle',
   'stackTrace',
+  'getNativeTypeSize',
 ];
 missingLibrarySymbols.forEach(missingLibrarySymbol)
 
   var unexportedSymbols = [
   'run',
-  'addRunDependency',
-  'removeRunDependency',
   'out',
   'err',
   'callMain',
   'abort',
-  'wasmMemory',
   'wasmExports',
   'HEAPF32',
   'HEAPF64',
@@ -1988,6 +1916,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'stackSave',
   'stackRestore',
   'stackAlloc',
+  'createNamedFunction',
   'ptrToString',
   'exitJS',
   'getHeapMax',
@@ -2010,6 +1939,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'maybeExit',
   'alignMemory',
   'wasmTable',
+  'wasmMemory',
   'noExitRuntime',
   'addOnPreRun',
   'addOnPostRun',
@@ -2194,8 +2124,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'Fibers',
   'SDL',
   'SDL_gfx',
-  'allocateUTF8',
-  'allocateUTF8OnStack',
   'printErr',
   'jstoi_s',
 ];
@@ -2213,6 +2141,9 @@ function checkIncomingModuleAPI() {
 function js_graphics_init(width,height) { console.log('[EM_JS] js_graphics_init called with', width, 'x', height); if (typeof Module.graphicsInit === 'function') { console.log('[EM_JS] Calling Module.graphicsInit'); const result = Module.graphicsInit(width, height); console.log('[EM_JS] Module.graphicsInit returned', result); return result; } console.error('[EM_JS] Module.graphicsInit not defined'); return false; }
 function js_graphics_flush(fb_ptr,width,height) { if (typeof Module.graphicsFlush === 'function') { const pixelCount = width * height; const pixels = HEAP32.subarray(fb_ptr >> 2, (fb_ptr >> 2) + pixelCount); Module.graphicsFlush(pixels, width, height); } }
 function js_graphics_cleanup() { if (typeof Module.graphicsCleanup === 'function') { Module.graphicsCleanup(); } }
+function js_keyboard_init() { console.log('[EM_JS] js_keyboard_init called'); if (typeof Module.keyboardInit === 'function') { console.log('[EM_JS] Calling Module.keyboardInit'); const result = Module.keyboardInit(); console.log('[EM_JS] Module.keyboardInit returned', result); return result; } console.error('[EM_JS] Module.keyboardInit not defined'); return false; }
+function js_keyboard_poll(out_code,out_flags) { if (typeof Module.keyboardPoll === 'function') { const event = Module.keyboardPoll(); if (event) { HEAPU16[out_code >> 1] = event.code; HEAPU8[out_flags] = event.flags; return true; } } return false; }
+function js_keyboard_cleanup() { if (typeof Module.keyboardCleanup === 'function') { Module.keyboardCleanup(); } }
 function js_fs_exists(path) { const pathStr = UTF8ToString(path); if (typeof Module.fsExists === 'function') { const result = Module.fsExists(pathStr); if (result === 'file') return 1; if (result === 'dir') return 2; } return 0; }
 function js_fs_read_file(path,buf,max_len) { const pathStr = UTF8ToString(path); if (typeof Module.fsReadFile === 'function') { const data = Module.fsReadFile(pathStr); if (data === null || data === undefined) { return -1; } const len = Math.min(data.length, max_len); for (let i = 0; i < len; i++) { HEAPU8[buf + i] = data[i]; } return len; } return -1; }
 function js_fs_file_size(path) { const pathStr = UTF8ToString(path); if (typeof Module.fsFileSize === 'function') { return Module.fsFileSize(pathStr); } if (typeof Module.fsReadFile === 'function') { const data = Module.fsReadFile(pathStr); if (data === null || data === undefined) { return -1; } return data.length; } return -1; }
@@ -2221,6 +2152,7 @@ function js_fs_create_file(path) { const pathStr = UTF8ToString(path); if (typeo
 function js_fs_create_dir(path) { const pathStr = UTF8ToString(path); if (typeof Module.fsCreateDir === 'function') { return Module.fsCreateDir(pathStr) ? 1 : 0; } return 0; }
 function js_fs_delete_file(path) { const pathStr = UTF8ToString(path); if (typeof Module.fsDeleteFile === 'function') { return Module.fsDeleteFile(pathStr) ? 1 : 0; } return 0; }
 function js_fs_delete_dir(path) { const pathStr = UTF8ToString(path); if (typeof Module.fsDeleteDir === 'function') { return Module.fsDeleteDir(pathStr) ? 1 : 0; } return 0; }
+function js_fs_list_dir(path,buf,max_len) { const pathStr = UTF8ToString(path); if (typeof Module.fsListDir === 'function') { const entries = Module.fsListDir(pathStr); if (entries === null || entries === undefined) { return -1; } let offset = 0; for (let i = 0; i < entries.length; i++) { const entry = entries[i]; if (offset + entry.length + 1 > max_len) { break; } for (let j = 0; j < entry.length; j++) { HEAPU8[buf + offset++] = entry.charCodeAt(j); } HEAPU8[buf + offset++] = 0; } return entries.length; } return -1; }
 function js_putchar(ch) { const str = String.fromCharCode(ch); if (typeof Module.print2 === 'function') { Module.print2(str, false); } else { if (ch === 10) { } else { } } }
 function js_getchar() { if (Module.inputBuffer && Module.inputBuffer.length > 0) { return Module.inputBuffer.shift(); } return -1; }
 function js_exit() { Module.exit(); }
@@ -2242,15 +2174,15 @@ var __emscripten_stack_restore = makeInvalidEarlyAccess('__emscripten_stack_rest
 var __emscripten_stack_alloc = makeInvalidEarlyAccess('__emscripten_stack_alloc');
 var _emscripten_stack_get_current = makeInvalidEarlyAccess('_emscripten_stack_get_current');
 var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
-var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
-var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
 var dynCall_vii = makeInvalidEarlyAccess('dynCall_vii');
 var dynCall_iii = makeInvalidEarlyAccess('dynCall_iii');
 var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
+var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
+var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
 var dynCall_iiiiii = makeInvalidEarlyAccess('dynCall_iiiiii');
+var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
 var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
 var dynCall_viiiii = makeInvalidEarlyAccess('dynCall_viiiii');
-var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
 var dynCall_iidiiii = makeInvalidEarlyAccess('dynCall_iidiiii');
 var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
 var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
@@ -2258,11 +2190,46 @@ var _asyncify_start_unwind = makeInvalidEarlyAccess('_asyncify_start_unwind');
 var _asyncify_stop_unwind = makeInvalidEarlyAccess('_asyncify_stop_unwind');
 var _asyncify_start_rewind = makeInvalidEarlyAccess('_asyncify_start_rewind');
 var _asyncify_stop_rewind = makeInvalidEarlyAccess('_asyncify_stop_rewind');
+var memory = makeInvalidEarlyAccess('memory');
+var __indirect_function_table = makeInvalidEarlyAccess('__indirect_function_table');
+var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 
 function assignWasmExports(wasmExports) {
+  assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
+  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
+  assert(typeof wasmExports['main'] != 'undefined', 'missing Wasm export: main');
+  assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
+  assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
+  assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
+  assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
+  assert(typeof wasmExports['emscripten_stack_init'] != 'undefined', 'missing Wasm export: emscripten_stack_init');
+  assert(typeof wasmExports['emscripten_stack_set_limits'] != 'undefined', 'missing Wasm export: emscripten_stack_set_limits');
+  assert(typeof wasmExports['emscripten_stack_get_free'] != 'undefined', 'missing Wasm export: emscripten_stack_get_free');
+  assert(typeof wasmExports['_emscripten_stack_restore'] != 'undefined', 'missing Wasm export: _emscripten_stack_restore');
+  assert(typeof wasmExports['_emscripten_stack_alloc'] != 'undefined', 'missing Wasm export: _emscripten_stack_alloc');
+  assert(typeof wasmExports['emscripten_stack_get_current'] != 'undefined', 'missing Wasm export: emscripten_stack_get_current');
+  assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
+  assert(typeof wasmExports['dynCall_vii'] != 'undefined', 'missing Wasm export: dynCall_vii');
+  assert(typeof wasmExports['dynCall_iii'] != 'undefined', 'missing Wasm export: dynCall_iii');
+  assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
+  assert(typeof wasmExports['dynCall_ii'] != 'undefined', 'missing Wasm export: dynCall_ii');
+  assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
+  assert(typeof wasmExports['dynCall_iiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiii');
+  assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
+  assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
+  assert(typeof wasmExports['dynCall_viiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiii');
+  assert(typeof wasmExports['dynCall_iidiiii'] != 'undefined', 'missing Wasm export: dynCall_iidiiii');
+  assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
+  assert(typeof wasmExports['dynCall_viiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiii');
+  assert(typeof wasmExports['asyncify_start_unwind'] != 'undefined', 'missing Wasm export: asyncify_start_unwind');
+  assert(typeof wasmExports['asyncify_stop_unwind'] != 'undefined', 'missing Wasm export: asyncify_stop_unwind');
+  assert(typeof wasmExports['asyncify_start_rewind'] != 'undefined', 'missing Wasm export: asyncify_start_rewind');
+  assert(typeof wasmExports['asyncify_stop_rewind'] != 'undefined', 'missing Wasm export: asyncify_stop_rewind');
+  assert(typeof wasmExports['memory'] != 'undefined', 'missing Wasm export: memory');
+  assert(typeof wasmExports['__indirect_function_table'] != 'undefined', 'missing Wasm export: __indirect_function_table');
   _malloc = createExportWrapper('malloc', 1);
   _free = createExportWrapper('free', 1);
-  Module['_main'] = _main = createExportWrapper('main', 2);
+  _main = Module['_main'] = createExportWrapper('main', 2);
   _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
   _fflush = createExportWrapper('fflush', 1);
@@ -2273,24 +2240,27 @@ function assignWasmExports(wasmExports) {
   __emscripten_stack_restore = wasmExports['_emscripten_stack_restore'];
   __emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'];
   _emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'];
-  dynCalls['v'] = dynCall_v = createExportWrapper('dynCall_v', 1);
-  dynCalls['ii'] = dynCall_ii = createExportWrapper('dynCall_ii', 2);
-  dynCalls['vi'] = dynCall_vi = createExportWrapper('dynCall_vi', 2);
-  dynCalls['vii'] = dynCall_vii = createExportWrapper('dynCall_vii', 3);
-  dynCalls['iii'] = dynCall_iii = createExportWrapper('dynCall_iii', 3);
-  dynCalls['iiii'] = dynCall_iiii = createExportWrapper('dynCall_iiii', 4);
-  dynCalls['iiiiii'] = dynCall_iiiiii = createExportWrapper('dynCall_iiiiii', 6);
-  dynCalls['viiii'] = dynCall_viiii = createExportWrapper('dynCall_viiii', 5);
-  dynCalls['viiiii'] = dynCall_viiiii = createExportWrapper('dynCall_viiiii', 6);
-  dynCalls['viii'] = dynCall_viii = createExportWrapper('dynCall_viii', 4);
-  dynCalls['iidiiii'] = dynCall_iidiiii = createExportWrapper('dynCall_iidiiii', 7);
-  dynCalls['jiji'] = dynCall_jiji = createExportWrapper('dynCall_jiji', 4);
-  dynCalls['viiiiii'] = dynCall_viiiiii = createExportWrapper('dynCall_viiiiii', 7);
+  dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', 1);
+  dynCall_vii = dynCalls['vii'] = createExportWrapper('dynCall_vii', 3);
+  dynCall_iii = dynCalls['iii'] = createExportWrapper('dynCall_iii', 3);
+  dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', 4);
+  dynCall_ii = dynCalls['ii'] = createExportWrapper('dynCall_ii', 2);
+  dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', 2);
+  dynCall_iiiiii = dynCalls['iiiiii'] = createExportWrapper('dynCall_iiiiii', 6);
+  dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', 4);
+  dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', 5);
+  dynCall_viiiii = dynCalls['viiiii'] = createExportWrapper('dynCall_viiiii', 6);
+  dynCall_iidiiii = dynCalls['iidiiii'] = createExportWrapper('dynCall_iidiiii', 7);
+  dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', 4);
+  dynCall_viiiiii = dynCalls['viiiiii'] = createExportWrapper('dynCall_viiiiii', 7);
   _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind', 1);
   _asyncify_stop_unwind = createExportWrapper('asyncify_stop_unwind', 0);
   _asyncify_start_rewind = createExportWrapper('asyncify_start_rewind', 1);
   _asyncify_stop_rewind = createExportWrapper('asyncify_stop_rewind', 0);
+  memory = wasmMemory = wasmExports['memory'];
+  __indirect_function_table = wasmExports['__indirect_function_table'];
 }
+
 var wasmImports = {
   /** @export */
   __assert_fail: ___assert_fail,
@@ -2327,6 +2297,8 @@ var wasmImports = {
   /** @export */
   js_fs_file_size,
   /** @export */
+  js_fs_list_dir,
+  /** @export */
   js_fs_read_file,
   /** @export */
   js_fs_write_file,
@@ -2339,9 +2311,14 @@ var wasmImports = {
   /** @export */
   js_graphics_init,
   /** @export */
+  js_keyboard_cleanup,
+  /** @export */
+  js_keyboard_init,
+  /** @export */
+  js_keyboard_poll,
+  /** @export */
   js_putchar
 };
-var wasmExports = await createWasm();
 
 
 // include: postamble.js
@@ -2350,7 +2327,6 @@ var wasmExports = await createWasm();
 var calledRun;
 
 function callMain() {
-  assert(runDependencies == 0, 'cannot call main when async dependencies remain! (listen on Module["onRuntimeInitialized"])');
   assert(typeof onPreRuns === 'undefined' || onPreRuns.length == 0, 'cannot call main when preRun functions remain to be called');
 
   var entryFunction = _main;
@@ -2381,20 +2357,9 @@ function stackCheckInit() {
 
 function run() {
 
-  if (runDependencies > 0) {
-    dependenciesFulfilled = run;
-    return;
-  }
-
   stackCheckInit();
 
   preRun();
-
-  // a preRun added a dependency, run will be called later
-  if (runDependencies > 0) {
-    dependenciesFulfilled = run;
-    return;
-  }
 
   function doRun() {
     // run may have just been called through dependencies being fulfilled just in this very frame,
@@ -2461,17 +2426,12 @@ function checkUnflushedContent() {
   }
 }
 
-function preInit() {
-  if (Module['preInit']) {
-    if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
-    while (Module['preInit'].length > 0) {
-      Module['preInit'].shift()();
-    }
-  }
-  consumedModuleProp('preInit');
-}
+var wasmExports;
 
-preInit();
+// In modularize mode the generated code is within a factory function so we
+// can use await here (since it's not top-level-await).
+wasmExports = await (createWasm());
+
 run();
 
 // end include: postamble.js

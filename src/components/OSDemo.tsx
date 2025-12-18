@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { createWasmFilesystem, type WasmFilesystem } from '../lib/wasm-filesystem'
+import { createKeyboardHandler } from '../lib/wasm-keyboard'
 
 declare global {
   interface Window {
@@ -13,6 +14,7 @@ export default function OSDemo() {
   const [error, setError] = useState<string | null>(null);
   const [wasmReady, setWasmReady] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [canvasFocused, setCanvasFocused] = useState(false);
   const moduleInstanceRef = useRef<any>(null);
   const outputBufferRef = useRef<string[]>([]);
   const inputBufferRef = useRef<number[]>([]);
@@ -20,6 +22,7 @@ export default function OSDemo() {
   const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filesystemRef = useRef<WasmFilesystem | null>(null);
+  const keyboardHandlerRef = useRef<ReturnType<typeof createKeyboardHandler> | null>(null);
 
   // Initialize filesystem and load Emscripten module on mount
   useEffect(() => {
@@ -77,6 +80,37 @@ export default function OSDemo() {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [output]);
+
+  // Set up keyboard event listeners on canvas with capture phase
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!canvasFocused || !isRunning) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const keepFocus = keyboardHandlerRef.current?.handleKeyEvent(e.code, true);
+      if (!keepFocus) {
+        canvas.blur();
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!canvasFocused || !isRunning) return;
+      e.preventDefault();
+      e.stopPropagation();
+      keyboardHandlerRef.current?.handleKeyEvent(e.code, false);
+    };
+
+    canvas.addEventListener('keydown', handleKeyDown, true);
+    canvas.addEventListener('keyup', handleKeyUp, true);
+
+    return () => {
+      canvas.removeEventListener('keydown', handleKeyDown, true);
+      canvas.removeEventListener('keyup', handleKeyUp, true);
+    };
+  }, [canvasFocused, isRunning]);
 
   const appendOutput = (text: string) => {
     outputBufferRef.current.push(text);
@@ -198,6 +232,22 @@ export default function OSDemo() {
         fsCreateDir: (path: string) => filesystemRef.current?.fsCreateDir(path) ?? false,
         fsDeleteFile: (path: string) => filesystemRef.current?.fsDeleteFile(path) ?? false,
         fsDeleteDir: (path: string) => filesystemRef.current?.fsDeleteDir(path) ?? false,
+
+        // Keyboard callbacks
+        keyboardInit: () => {
+          console.log('[OSDemo] Initializing keyboard handler');
+          keyboardHandlerRef.current = createKeyboardHandler();
+          return true;
+        },
+
+        keyboardPoll: () => {
+          return keyboardHandlerRef.current?.poll() ?? null;
+        },
+
+        keyboardCleanup: () => {
+          console.log('[OSDemo] Cleaning up keyboard handler');
+          keyboardHandlerRef.current?.cleanup();
+        },
 
         // Called when runtime is ready
         onRuntimeInitialized: () => {
@@ -369,15 +419,35 @@ export default function OSDemo() {
         <label className="block text-sm font-medium mb-2 text-green-400">
           Graphics Output
         </label>
-        <canvas
-          ref={canvasRef}
-          className="border-2 border-green-700 rounded-md bg-black"
-          style={{
-            imageRendering: 'pixelated',
-            maxWidth: '100%',
-            height: 'auto'
-          }}
-        />
+        <div className="relative inline-block">
+          <canvas
+            ref={canvasRef}
+            tabIndex={0}
+            onFocus={() => setCanvasFocused(true)}
+            onBlur={() => setCanvasFocused(false)}
+            className={`border-2 rounded-md bg-black outline-none transition-all ${
+              canvasFocused
+                ? 'border-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]'
+                : 'border-green-700'
+            }`}
+            style={{
+              imageRendering: 'pixelated',
+              maxWidth: '100%',
+              height: 'auto'
+            }}
+          />
+          {/* Focus overlay - shown when canvas is not focused */}
+          {isRunning && !canvasFocused && (
+            <div
+              className="absolute inset-0 flex items-center justify-center cursor-pointer rounded-md"
+              onClick={() => canvasRef.current?.focus()}
+            >
+              <span className="text-green-400 text-sm font-medium px-4 py-2 bg-black/80 rounded border border-green-700">
+                Click to capture keyboard (Esc/Tab to release)
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
