@@ -28,6 +28,18 @@ export default defineConfig({
                 link: '/demo',
               },
               {
+                label: 'User guide',
+                link: '/os/user-guide',
+              },
+              {
+                label: 'Development guide',
+                link: '/os/development-guide',
+              },
+              {
+                label: 'Architecture',
+                link: '/os/architecture',
+              },
+              {
                 label: 'Development log',
                 link: 'https://upvalue.io/posts/tag/otium/',
               }

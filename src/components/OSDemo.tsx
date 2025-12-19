@@ -14,6 +14,11 @@ declare global {
 const RECIPES = [
   { name: "Select a recipe...", command: "" },
   { name: "Hello World", command: 'puts "hello world"' },
+  { name: "Calculate fib(10)", command: "proc fib {x} { if {<= $x 1} { return 1 } else { + [fib [- $x 1]] [fib [- $x 2]] } }; fib 10" },
+  { name: "Run graphical demo", command: "run spacedemo" },
+  { name: "Edit a tcl script", command: "run edit hello.tcl" },
+
+
 ];
 
 export default function OSDemo() {
@@ -325,7 +330,7 @@ export default function OSDemo() {
     inputBufferRef.current.push(13);
 
     // Show the input in the terminal
-    appendOutput(`> ${inputValue}\n`);
+    appendOutput(`${inputValue}\n`);
 
     // Clear the input field
     setInputValue("");
@@ -345,8 +350,12 @@ export default function OSDemo() {
     // Show the input in the terminal
     appendOutput(`> ${command}\n`);
 
-    // Switch to terminal tab
-    setActiveTab("terminal");
+    // Switch to appropriate tab based on recipe type
+    if (command.startsWith("run ")) {
+      setActiveTab("graphics");
+    } else {
+      setActiveTab("terminal");
+    }
 
     // Scroll terminal to bottom
     setTimeout(() => {

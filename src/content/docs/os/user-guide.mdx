@@ -1,0 +1,53 @@
+---
+title: "User Guide"
+---
+
+The best place to use the operating system is the [web demo](/demo). When running the web
+demo, the "recipes" dropdown allows entering some fun commands in the terminal and
+executing them. It can be re-run using the buttons on the UI or by refreshing the page if
+you get into trouble.
+
+# Using the shell
+
+Otium's shell is a subset of the [Tcl](https://en.wikipedia.org/wiki/Tcl) programming
+language.
+
+All commands can be printed out by entering `help` and command names can be searched through
+using `help <name>`, ex `help fs/` to get help on all filesystem related commands.
+
+`run` can be used to run built in C++-compiled programs
+
+For example
+
+`run echo hello world` echos hello world. 
+
+`shutdown` shuts the operating system down (if using the web demo).
+
+`dofile` can be used to execute Tcl programs created using the editor or filesystem commands.
+
+For example,
+
+> fs/write hello.tcl "puts \"hello world\""
+
+> dofile hello.tcl
+
+Will print hello world.
+
+# Using graphical applications
+
+Graphical applications can be quit with `Alt-Q`. Multiple graphical applications can be
+navigated between using `Alt-<number>`.
+
+# Using the editor
+
+There is a built in graphical editor which supports a very small subset of Vim/emacs
+keybindings.
+
+Use `Alt-X` to enter commands.
+
+The command mode (which can be triggered with M-x or the key `;` when in vim mode) evaluates
+Tcl strings. The built in commands are:
+
+`w` for write
+`q` for quit
+`togglemode` to toggle vim mode on and off

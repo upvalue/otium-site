@@ -1,0 +1,64 @@
+---
+title: "Development guide"
+---
+
+
+Right now, the best documentation of the development setup is in the
+[AGENTS.md](https://github.com/upvalue/otium/blob/main/os/AGENTS.md) file.
+
+# Simple WASM build
+
+The best way to build is using Nix, which builds a WASM blob which can then be run using NodeJS.
+
+In order:
+
+> nix-build -I nixpkgs=channel:nixpkgs-unstable
+> npm i
+> node run-wasm.js
+
+To build the WASM and run it under NodeJS.
+
+This (and other workflows) have only been tested on my Macbook Air, so while there's
+nothing highly system-dependent about the setup, because of the odd toolchains involved
+it's likely that methodologies other than Nix won't work without some tweaking.
+
+# Meson
+
+The operating system is configured using Meson, and there are a variety of options which
+allow changing out drivers and the default "kernel program" (which sequence of things to do on startup)
+
+> meson setup build-riscv --cross-file=cross/riscv32.txt
+
+and
+
+> meson setup build-wasm --cross-file=cross/wasm.txt
+
+Will setup the build directory for a particular target.
+
+Each target should set reasonable defaults: appropriate drivers, and a main sequence that
+gives you a functional shell.
+[meson.build](https://github.com/upvalue/otium/blob/main/meson.build) has full details on options.
+
+And then
+
+> meson compile -C build-riscv -v
+
+or
+
+> meson compile -C build-wasm -v 
+
+There are various shortcuts for building and running the operating system in the Justfile:
+
+> just --list
+
+# QEMU and WASM harnesses
+
+On RISC-V, Otium currently runs under QEMU. The script `tools/run-qemu-riscv.sh` (`just run-riscv` as a shortcut).
+
+On WASM, the NodeJS harness (`node run-wasm.js`) will run the operating system using SDL
+to provide graphics and device support.
+
+## Filesystem
+
+Both harnesses will read the `fs-in` directory in the source tree to create the initial
+filesystem and try to push the results out to fs-out at the end
