@@ -266,6 +266,8 @@ export default function OSDemo() {
           filesystemRef.current?.fsDeleteFile(path) ?? false,
         fsDeleteDir: (path: string) =>
           filesystemRef.current?.fsDeleteDir(path) ?? false,
+        fsListDir: (path: string) =>
+          filesystemRef.current?.fsListDir(path) ?? null,
 
         // Keyboard callbacks
         keyboardInit: () => {

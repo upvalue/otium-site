@@ -6,6 +6,8 @@
  * happening asynchronously in the background.
  */
 
+import { FS_INIT_FILES } from './wasm-filesystem-init';
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -32,6 +34,7 @@ export interface WasmFilesystem {
   fsCreateDir(path: string): boolean;
   fsDeleteFile(path: string): boolean;
   fsDeleteDir(path: string): boolean;
+  fsListDir(path: string): string[] | null;
 
   // Async setup
   init(): Promise<void>;
@@ -158,6 +161,29 @@ export function createWasmFilesystem(): WasmFilesystem {
       const rootEntry: DirEntry = { type: 'dir', children: new Set() };
       storage.set('/', rootEntry);
       saveEntryToDb(db, '/', rootEntry);
+
+      // Load all files from fs-in directory
+      const encoder = new TextEncoder();
+      for (const file of FS_INIT_FILES) {
+        const normalized = normalizePath(file.path);
+        const data = encoder.encode(file.content);
+
+        // Ensure parent directories exist
+        ensureParentDirs(normalized);
+
+        // Create file entry
+        const fileEntry: FileEntry = { type: 'file', data };
+        storage.set(normalized, fileEntry);
+
+        // Add to parent's children
+        const parent = getParentPath(normalized);
+        const parentEntry = storage.get(parent);
+        if (parentEntry && parentEntry.type === 'dir') {
+          parentEntry.children.add(getBasename(normalized));
+        }
+
+        saveEntryToDb(db, normalized, fileEntry);
+      }
     },
 
     fsExists(path: string): 'file' | 'dir' | null {
@@ -296,6 +322,26 @@ export function createWasmFilesystem(): WasmFilesystem {
       storage.delete(normalized);
       if (db) deleteEntryFromDb(db, normalized);
       return true;
+    },
+
+    fsListDir(path: string): string[] | null {
+      const normalized = normalizePath(path);
+      const entry = storage.get(normalized);
+
+      if (!entry || entry.type !== 'dir') {
+        return null;
+      }
+
+      // Return array of entry names with '/' suffix for directories
+      const result: string[] = [];
+      for (const childName of entry.children) {
+        const childPath = normalized === '/' ? '/' + childName : normalized + '/' + childName;
+        const childEntry = storage.get(childPath);
+        if (childEntry) {
+          result.push(childEntry.type === 'dir' ? childName + '/' : childName);
+        }
+      }
+      return result;
     },
   };
 }

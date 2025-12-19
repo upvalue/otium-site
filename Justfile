@@ -1,6 +1,10 @@
 update-remotes:
   git submodule update --remote otium
 
+update-fs-init:
+  node scripts/generate-fs-init.js
+  @echo "Filesystem initialization updated from otium/os/fs-in/"
+
 build-wasm:
   nix-build -I nixpkgs=channel:nixpkgs-unstable otium/os -o result-wasm
   mkdir -p public/os-wasm
