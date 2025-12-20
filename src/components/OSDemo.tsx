@@ -371,16 +371,8 @@ export default function OSDemo() {
   };
 
   const stopProgram = () => {
-    if (moduleInstanceRef.current && moduleInstanceRef.current.exit) {
-      try {
-        moduleInstanceRef.current.exit();
-      } catch (err) {
-        console.error("Error stopping program:", err);
-      }
-    }
-    setIsRunning(false);
-    setGraphicsActive(false);
-    appendOutput("\n> Program stopped by user.\n");
+    // Reload the page to completely reset the WASM module
+    window.location.reload();
   };
 
   return (
