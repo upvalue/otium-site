@@ -1,4 +1,335 @@
-@layer base, starlight, theme, components, utilities;
-@import '@astrojs/starlight-tailwind';
-@import 'tailwindcss/theme.css' layer(theme);
-@import 'tailwindcss/utilities.css' layer(utilities);
+/* Layout modeled on superlogical.com/rex/docs: a narrow fixed sidebar and a
+   single reading column. Dark only for now. */
+
+:root {
+  --paper: #0a1020;
+  --surface: #111a30;
+  --ink: #eaf0ff;
+  --soft: #c3cde6;
+  --muted: #8193b8;
+  --rule: #9fb6ff26;
+  --wash: #9fb6ff14;
+  --accent: #79a8ff;
+  --focus: #79a8ff;
+
+  --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-body: 0.9375rem;
+  --text-nav: 0.875rem;
+  --text-heading: 1.125rem;
+  --text-title: 1.75rem;
+
+  --radius: 0.75rem;
+  --measure: clamp(38rem, calc(38rem + (100vw - 90rem) * 0.2667), 46rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(60rem 40rem at 10% -10%, #1b3a8a33, transparent 70%),
+    var(--paper);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+::selection {
+  background: #79a8ff55;
+}
+
+.wordmark {
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* Page frame */
+
+.page {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.sidebar {
+  font-size: var(--text-nav);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding-top: 1.75rem;
+}
+
+.nav-section h2 {
+  margin: 0;
+  padding-bottom: 0.75rem;
+  font-size: inherit;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-link {
+  display: block;
+  margin-inline-start: -0.375rem;
+  padding: 0.25rem 0.375rem;
+  border-radius: 0.375rem;
+  color: var(--soft);
+  text-decoration: none;
+  transition: color 0.1s, background-color 0.1s;
+}
+
+.nav-link:hover {
+  color: var(--ink);
+}
+
+.nav-link[aria-current='page'] {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.nav-external .nav-link {
+  color: var(--muted);
+}
+
+/* Wide screens: fixed sidebar, column offset to the right of it */
+
+@media (width >= 46rem) {
+  .mobile-bar {
+    display: none;
+  }
+
+  .page {
+    margin: 0 auto 0 max(15rem, calc(50vw - 18rem));
+    padding: 5rem 2rem 4rem 0;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: clamp(0.5rem, calc(50vw - 33rem), 4rem);
+    width: 12.5rem;
+    max-height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding: 5rem 0.5rem 5rem 1rem;
+  }
+}
+
+/* Narrow screens: top bar with a menu that covers the page */
+
+@media not all and (width >= 46rem) {
+  .mobile-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: color-mix(in srgb, var(--paper) 85%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .menu-button {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--wash);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--text-nav);
+    cursor: pointer;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .sidebar > .wordmark {
+    display: none;
+  }
+
+  .menu-open .sidebar {
+    display: block;
+    position: fixed;
+    inset: 4.3rem 0 0;
+    z-index: 10;
+    overflow-y: auto;
+    padding: 0.5rem 1.5rem 4rem;
+    background: var(--paper);
+    font-size: 1.25rem;
+  }
+
+  .menu-open main {
+    visibility: hidden;
+  }
+
+  .menu-open .nav {
+    gap: 2rem;
+  }
+}
+
+/* Article */
+
+.article {
+  color: var(--soft);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.article :where(h1, h2, h3, h4) {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 600;
+  scroll-margin-top: 5rem;
+}
+
+.article h1 {
+  font-size: var(--text-title);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  padding-bottom: 0.5rem;
+}
+
+.article :where(h2, h3) {
+  font-size: var(--text-heading);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  padding-top: 2.5rem;
+}
+
+.article h3 {
+  font-size: var(--text-body);
+  padding-top: 1.5rem;
+}
+
+.article :where(p, ul, ol, pre, blockquote, table) {
+  margin: 1rem 0 0;
+}
+
+.article strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.article a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: #79a8ff66;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.1s;
+}
+
+.article a:hover {
+  text-decoration-color: currentColor;
+}
+
+.article :where(ul, ol) {
+  padding-left: 1.25rem;
+}
+
+.article li + li {
+  margin-top: 0.375rem;
+}
+
+.article li::marker {
+  color: var(--muted);
+}
+
+.article blockquote {
+  padding: 0.75rem 1rem;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--wash);
+}
+
+.article blockquote > :first-child {
+  margin-top: 0;
+}
+
+.article hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.article code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--ink);
+  background: var(--wash);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+}
+
+.article pre {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface) !important;
+  box-shadow: 0 4px 16px -6px #0008;
+  overflow-x: auto;
+  line-height: 1.55;
+}
+
+.article pre code {
+  padding: 0;
+  background: none;
+  font-size: 0.8125rem;
+}
+
+.article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-nav);
+}
+
+.article :where(th, td) {
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+
+.article th {
+  color: var(--ink);
+  font-weight: 500;
+}

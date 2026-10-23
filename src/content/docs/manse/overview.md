@@ -1,0 +1,5 @@
+---
+title: Manse
+---
+
+Placeholder.

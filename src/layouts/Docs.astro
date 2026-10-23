@@ -1,0 +1,84 @@
+---
+import '@fontsource-variable/bricolage-grotesque/standard.css';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+import { nav, hrefFor } from '../nav';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const path = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const pageTitle = path === '/' ? 'Otium' : `${title} · Otium`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a1020" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body>
+    <header class="mobile-bar">
+      <a href="/" class="wordmark">Otium</a>
+      <button type="button" class="menu-button" aria-controls="mobile-nav" aria-expanded="false">Menu</button>
+    </header>
+
+    <div class="page">
+      <aside class="sidebar">
+        <a href="/" class="wordmark">Otium</a>
+        <nav id="mobile-nav" class="nav" aria-label="Documentation">
+          {
+            nav.map((section) => (
+              <div class="nav-section">
+                {section.title && <h2>{section.title}</h2>}
+                <ul>
+                  {section.items.map((item) => {
+                    const href = hrefFor(item.slug);
+                    const current = href === path;
+                    return (
+                      <li>
+                        <a href={href} class="nav-link" aria-current={current ? 'page' : undefined}>
+                          {item.label}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))
+          }
+          <div class="nav-section nav-external">
+            <a href="https://github.com/upvalue/otium" class="nav-link">GitHub</a>
+          </div>
+        </nav>
+      </aside>
+
+      <main>
+        <article class="article">
+          <h1>{title}</h1>
+          <slot />
+        </article>
+      </main>
+    </div>
+
+    <script>
+      const button = document.querySelector<HTMLButtonElement>('.menu-button')!;
+      button.addEventListener('click', () => {
+        const open = document.body.classList.toggle('menu-open');
+        button.setAttribute('aria-expanded', String(open));
+        button.textContent = open ? 'Close' : 'Menu';
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('menu-open')) button.click();
+      });
+    </script>
+  </body>
+</html>
