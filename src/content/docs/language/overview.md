@@ -2,10 +2,10 @@
 title: Language overview
 ---
 
-Placeholder. Use `define` to bind names.
+Placeholder. Use `def` to bind names.
 
-```scheme
-(define (fib n)
+```otium
+(def (fib n)
   (if (< n 2)
       n
       (+ (fib (- n 1)) (fib (- n 2)))))
