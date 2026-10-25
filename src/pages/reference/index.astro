@@ -1,0 +1,20 @@
+---
+import Docs from '../../layouts/Docs.astro';
+import { namespaces, namespaceHref } from '../../reference';
+---
+
+<Docs title="Reference" description="Reference for Otium's namespaces, generated from docstrings.">
+  <p>
+    Generated from the docstrings in the Otium source and the runtime's builtin catalog. Press <kbd>/</kbd> to
+    search.
+  </p>
+  <ul>
+    {
+      namespaces.map((ns) => (
+        <li>
+          <a href={namespaceHref(ns.name)}>{ns.name}</a>: {ns.entries.length} bindings
+        </li>
+      ))
+    }
+  </ul>
+</Docs>

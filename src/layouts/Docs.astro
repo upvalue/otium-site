@@ -2,6 +2,7 @@
 import '@fontsource-variable/bricolage-grotesque/standard.css';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
+import Search from '../components/Search.astro';
 import { nav, hrefFor } from '../nav';
 
 interface Props {
@@ -28,12 +29,18 @@ const pageTitle = path === '/' ? 'Otium' : `${title} · Otium`;
   <body>
     <header class="mobile-bar">
       <a href="/" class="wordmark">Otium</a>
-      <button type="button" class="menu-button" aria-controls="mobile-nav" aria-expanded="false">Menu</button>
+      <div class="mobile-actions">
+        <button type="button" class="menu-button" data-search-open>Search</button>
+        <button type="button" class="menu-button" data-menu aria-controls="mobile-nav" aria-expanded="false">Menu</button>
+      </div>
     </header>
 
     <div class="page">
       <aside class="sidebar">
         <a href="/" class="wordmark">Otium</a>
+        <button type="button" class="search-button" data-search-open>
+          <span>Search</span><kbd>/</kbd>
+        </button>
         <nav id="mobile-nav" class="nav" aria-label="Documentation">
           {
             nav.map((section) => (
@@ -69,8 +76,10 @@ const pageTitle = path === '/' ? 'Otium' : `${title} · Otium`;
       </main>
     </div>
 
+    <Search />
+
     <script>
-      const button = document.querySelector<HTMLButtonElement>('.menu-button')!;
+      const button = document.querySelector<HTMLButtonElement>('[data-menu]')!;
       button.addEventListener('click', () => {
         const open = document.body.classList.toggle('menu-open');
         button.setAttribute('aria-expanded', String(open));

@@ -1,0 +1,113 @@
+---
+// Reference search. Opens with / or Cmd-K, or from any [data-search-open]
+// button, and loads /reference/search.json on first use.
+---
+
+<dialog class="search-dialog" aria-label="Search the reference">
+  <input class="search-input" type="search" placeholder="Search functions…" autocomplete="off" spellcheck="false" />
+  <ul class="search-results" role="listbox"></ul>
+</dialog>
+
+<script>
+  type Row = [name: string, ns: string, signature: string, summary: string];
+
+  const dialog = document.querySelector<HTMLDialogElement>('.search-dialog')!;
+  const input = dialog.querySelector<HTMLInputElement>('.search-input')!;
+  const list = dialog.querySelector<HTMLUListElement>('.search-results')!;
+  let rows: Row[] | undefined;
+  let results: Row[] = [];
+  let selected = 0;
+
+  const href = ([name, ns]: Row) => `/reference/${ns}/#${encodeURIComponent(name)}`;
+
+  // Lower scores rank first: exact name, name prefix, name substring, then
+  // signature or summary text.
+  function score([name, , signature, summary]: Row, q: string) {
+    const n = name.toLowerCase();
+    if (n === q) return 0;
+    if (n.startsWith(q)) return 1;
+    if (n.includes(q)) return 2;
+    if (signature.toLowerCase().includes(q) || summary.toLowerCase().includes(q)) return 3;
+    return -1;
+  }
+
+  function search(query: string) {
+    const q = query.trim().toLowerCase();
+    if (!rows || !q) return [];
+    return rows
+      .map((row) => ({ row, s: score(row, q) }))
+      .filter((r) => r.s >= 0)
+      .sort((a, b) => a.s - b.s || a.row[0].length - b.row[0].length || a.row[0].localeCompare(b.row[0]))
+      .slice(0, 50)
+      .map((r) => r.row);
+  }
+
+  function render() {
+    list.replaceChildren(
+      ...results.map((row, i) => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', String(i === selected));
+        const a = document.createElement('a');
+        a.href = href(row);
+        const name = document.createElement('code');
+        name.textContent = row[2] || row[0];
+        const summary = document.createElement('span');
+        summary.textContent = row[3];
+        a.append(name, summary);
+        li.append(a);
+        return li;
+      }),
+    );
+    list.children[selected]?.scrollIntoView({ block: 'nearest' });
+  }
+
+  async function open() {
+    if (!dialog.open) dialog.showModal();
+    input.select();
+    if (!rows) {
+      rows = await (await fetch('/reference/search.json')).json();
+      update();
+    }
+  }
+
+  function update() {
+    results = search(input.value);
+    selected = 0;
+    render();
+  }
+
+  function go(row: Row | undefined) {
+    if (!row) return;
+    dialog.close();
+    location.href = href(row);
+  }
+
+  input.addEventListener('input', update);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const step = e.key === 'ArrowDown' ? 1 : -1;
+      selected = Math.max(0, Math.min(results.length - 1, selected + step));
+      render();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      go(results[selected]);
+    }
+  });
+  // Closing on a navigation within the same page keeps the dialog from
+  // covering the entry it jumped to.
+  list.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+
+  document.querySelectorAll('[data-search-open]').forEach((b) => b.addEventListener('click', open));
+  document.addEventListener('keydown', (e) => {
+    const typing = e.target instanceof HTMLElement && e.target.closest('input, textarea, [contenteditable]');
+    if ((e.key === '/' && !typing) || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
+      e.preventDefault();
+      open();
+    }
+  });
+</script>

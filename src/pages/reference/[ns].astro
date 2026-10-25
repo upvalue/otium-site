@@ -1,0 +1,59 @@
+---
+import Docs from '../../layouts/Docs.astro';
+import {
+  namespaces,
+  kindLabel,
+  renderDoc,
+  renderSignature,
+  runtimeLabel,
+  sourceUrl,
+  type Namespace,
+} from '../../reference';
+
+export function getStaticPaths() {
+  return namespaces.map((ns) => ({ params: { ns: ns.name }, props: { ns } }));
+}
+
+const { ns } = Astro.props as { ns: Namespace };
+// Only mark entries missing from a runtime; most are on both.
+const allRuntimes = ['chez', 'c'];
+---
+
+<Docs title={ns.name} description={`Reference for ${ns.name}: ${ns.entries.length} bindings.`}>
+  <p>
+    {ns.entries.length} bindings. Press <kbd>/</kbd> to search.
+  </p>
+
+  <nav class="ref-index" aria-label="Bindings">
+    {ns.entries.map((e) => <a href={`#${encodeURIComponent(e.name)}`}>{e.name}</a>)}
+  </nav>
+
+  {
+    ns.entries.map((e) => {
+      const missing = allRuntimes.filter((r) => !e.runtimes.includes(r));
+      const url = sourceUrl(e);
+      return (
+        <section class="ref-entry" id={e.name}>
+          <header class="ref-head">
+            <h2>
+              <a href={`#${encodeURIComponent(e.name)}`}>{e.name}</a>
+            </h2>
+            <span class="ref-kind">{kindLabel[e.kind]}</span>
+            {missing.length > 0 && (
+              <span class="ref-runtime">{e.runtimes.map((r) => runtimeLabel[r]).join(', ')} only</span>
+            )}
+            {url && (
+              <a class="ref-source" href={url}>
+                source
+              </a>
+            )}
+          </header>
+          {e.signatures?.map((sig) => (
+            <pre class="ref-sig"><code set:html={renderSignature(e.name, sig)} /></pre>
+          ))}
+          {e.doc ? <div class="ref-doc" set:html={renderDoc(e.doc, ns)} /> : <p class="ref-none">No documentation.</p>}
+        </section>
+      );
+    })
+  }
+</Docs>

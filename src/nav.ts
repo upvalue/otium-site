@@ -1,4 +1,7 @@
-// Sidebar order. Each slug is a file under src/content/docs (without .md).
+import { namespaces } from './reference';
+
+// Sidebar order. Each slug is a file under src/content/docs (without .md), or
+// a reference page.
 export type NavSection = { title?: string; items: { label: string; slug: string }[] };
 
 export const nav: NavSection[] = [
@@ -15,6 +18,10 @@ export const nav: NavSection[] = [
       { label: 'Syntax', slug: 'language/syntax' },
       { label: 'Objects', slug: 'language/objects' },
     ],
+  },
+  {
+    title: 'Reference',
+    items: namespaces.map((ns) => ({ label: ns.name, slug: `reference/${ns.name}` })),
   },
   {
     title: 'Manse',
