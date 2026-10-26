@@ -1,9 +1,15 @@
 ---
 import { getCollection, render } from 'astro:content';
+import { titleFor } from '../nav';
 import Docs from '../layouts/Docs.astro';
 
 export async function getStaticPaths() {
   const docs = await getCollection('docs');
+  for (const doc of docs) {
+    if (doc.id === 'reference' || doc.id.startsWith('reference/')) {
+      throw new Error(`Document route reserved for generated reference: ${doc.id}`);
+    }
+  }
   return docs.map((doc) => ({
     params: { slug: doc.id === 'index' ? undefined : doc.id },
     props: { doc },
@@ -11,9 +17,9 @@ export async function getStaticPaths() {
 }
 
 const { doc } = Astro.props;
-const { Content } = await render(doc);
+const { Content, headings } = await render(doc);
 ---
 
-<Docs title={doc.data.title} description={doc.data.description}>
+<Docs title={titleFor(doc)} headings={doc.data.toc ? headings : []} description={doc.data.description}>
   <Content />
 </Docs>

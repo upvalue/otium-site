@@ -567,3 +567,7 @@ a {
 .ref-none {
   color: var(--muted);
 }
+
+.page-toc { margin: 1.5rem 0 2rem; padding: 1rem; border: 1px solid var(--border, #273047); border-radius: .5rem; }
+.page-toc ul { margin-bottom: 0; }
+.page-toc .nested { margin-left: 1rem; }

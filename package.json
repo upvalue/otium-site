@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "test": "node --test src/syntax/*.test.mjs",
+    "test": "node --test src/syntax/*.test.mjs src/docs/*.test.mjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -13,7 +13,8 @@
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
-    "astro": "^7.4.0"
+    "astro": "^7.4.0",
+    "@astrojs/markdown-satteri": "0.4.4"
   },
   "devDependencies": {
     "shiki": "4.5.0"

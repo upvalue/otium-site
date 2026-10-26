@@ -1,7 +1,6 @@
 // The function reference, read from the otium submodule's docs/reference.json.
 // tools/export-reference.ot in the otium repo writes that file.
-import { execFileSync } from 'node:child_process';
-import reference from '../otium/docs/reference.json';
+import { reference, commit } from './docs.mjs';
 
 export type Arg = {
   name?: string;
@@ -24,17 +23,7 @@ export type Entry = {
 
 export type Namespace = { name: string; entries: Entry[] };
 
-const OTIUM = 'otium';
-
 export const namespaces = reference.namespaces as Namespace[];
-
-const commit = (() => {
-  try {
-    return execFileSync('git', ['-C', OTIUM, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  } catch {
-    return 'main';
-  }
-})();
 
 export function sourceUrl(entry: Entry) {
   if (!entry.source) return undefined;

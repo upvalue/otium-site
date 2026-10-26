@@ -1,12 +1,18 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { docsRoot, docId } from './docs.mjs';
 
 const docs = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/docs' }),
+  loader: glob({
+    pattern: ['**/*.md', '!ui-revisions.md'],
+    base: docsRoot,
+    generateId: ({ entry }) => docId(entry),
+  }),
   schema: z.object({
-    title: z.string(),
+    title: z.string().optional(),
     description: z.string().optional(),
+    toc: z.boolean().default(true),
   }),
 });
 

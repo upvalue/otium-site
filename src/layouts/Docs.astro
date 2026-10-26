@@ -3,14 +3,17 @@ import '@fontsource-variable/bricolage-grotesque/standard.css';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
 import Search from '../components/Search.astro';
-import { nav, hrefFor } from '../nav';
+import { getNav, hrefFor } from '../nav';
 
 interface Props {
   title: string;
+  headings?: { depth: number; slug: string; text: string }[];
   description?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, headings = [] } = Astro.props;
+const nav = await getNav();
+const toc = headings.filter(h => h.depth === 2 || h.depth === 3);
 const path = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 const pageTitle = path === '/' ? 'Otium' : `${title} · Otium`;
 ---
@@ -71,6 +74,13 @@ const pageTitle = path === '/' ? 'Otium' : `${title} · Otium`;
       <main>
         <article class="article">
           <h1>{title}</h1>
+          {toc.length > 0 && (
+            <nav class="page-toc" aria-label="On this page">
+              <details open><summary>On this page</summary>
+                <ul>{toc.map(h => <li class:list={{ nested: h.depth === 3 }}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ul>
+              </details>
+            </nav>
+          )}
           <slot />
         </article>
       </main>
