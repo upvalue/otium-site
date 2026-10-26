@@ -1,6 +1,6 @@
 ---
 import Docs from '../../layouts/Docs.astro';
-import { namespaces, namespaceHref } from '../../reference';
+import { namespaces, namespaceHref, summary } from '../../reference';
 ---
 
 <Docs title="Reference" description="Reference for Otium's namespaces, generated from docstrings.">
@@ -13,6 +13,7 @@ import { namespaces, namespaceHref } from '../../reference';
       namespaces.map((ns) => (
         <li>
           <a href={namespaceHref(ns.name)}>{ns.name}</a>: {ns.entries.length} bindings
+          {ns.doc && <p>{summary(ns.doc)}</p>}
         </li>
       ))
     }

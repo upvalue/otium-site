@@ -21,7 +21,7 @@ export type Entry = {
   source?: { file: string; line: number };
 };
 
-export type Namespace = { name: string; entries: Entry[] };
+export type Namespace = { name: string; doc?: string; entries: Entry[] };
 
 export const namespaces = reference.namespaces as Namespace[];
 
