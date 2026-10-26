@@ -1,5 +1,6 @@
 ---
 import Docs from '../../layouts/Docs.astro';
+import TypeDetails from '../../components/TypeDetails.astro';
 import {
   namespaces,
   kindLabel,
@@ -55,6 +56,7 @@ const allRuntimes = ['chez', 'c'];
             <pre class="ref-sig"><code set:html={renderSignature(e.name, sig)} /></pre>
           ))}
           {e.doc ? <div class="ref-doc" set:html={renderDoc(e.doc, ns)} /> : <p class="ref-none">No documentation.</p>}
+          {e.fields && <TypeDetails entry={e} ns={ns} />}
         </section>
       );
     })

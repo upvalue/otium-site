@@ -1,0 +1,36 @@
+---
+import { namespaces, entryHref, type Entry, type Namespace } from '../reference';
+const { entry, ns } = Astro.props as { entry: Entry; ns: Namespace };
+const fields = entry.fields ?? [];
+const parentSpace = [ns, ...namespaces].find(space => space.entries.some(e => e.name === entry.parent));
+const required = fields.filter(f => f.required);
+const constructor = entry.kind === 'record'
+  ? `(record-new ${entry.name}${fields.map(f => ` ${f.name}`).join('')})`
+  : `(make ${entry.name}${required.map(f => ` :${f.name} ${f.name}`).join('')}${fields.some(f => !f.required) ? ' ...' : ''})`;
+---
+{entry.parent && <p>Parent: <>{parentSpace ? <a href={entryHref(parentSpace.name, entry.parent)}><code>{entry.parent}</code></a> : <code>{entry.parent}</code>}</>.</p>}
+{entry.kind === 'abstract' ? <p>Abstract type. Use as a parent or method specializer; it cannot be constructed.</p> : <>
+  <pre class="ref-sig"><code>{constructor}</code></pre>
+  {entry.kind === 'record'
+    ? <p>{entry.immutable ? 'Immutable record.' : 'Mutable record.'} Supply all fields in the order shown.</p>
+    : <p>Supply required slots by keyword. Defaults are evaluated for each new instance. Read a slot with <code>(instance :slot)</code>.</p>}
+  {fields.length > 0 && <div class="type-fields">
+    <table>
+      <caption>{entry.kind === 'record' ? 'Fields in constructor order' : 'Slots in declaration order'}</caption>
+      <thead><tr><th scope="col">Name</th><th scope="col">Default</th><th scope="col">Notes</th></tr></thead>
+      <tbody>{fields.map(field => <tr>
+        <th scope="row"><code>:{field.name}</code></th>
+        <td>{field.required ? 'Required' : <code>{field.default}</code>}</td>
+        <td>{field.state && 'Retained state. '}{field.accessor && <>Accessor: <code>{field.accessor}</code></>}</td>
+      </tr>)}</tbody>
+    </table>
+  </div>}
+  {fields.some(f => f.state) && <p>State slots are owned by the widget and survive reconciliation; omit them from view properties.</p>}
+</>}
+<style>
+  .type-fields { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+  caption { text-align: left; margin-bottom: 0.5rem; }
+  th, td { text-align: left; vertical-align: top; padding: 0.4rem 0.7rem; border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
+  td code { white-space: pre-wrap; }
+</style>

@@ -14,10 +14,13 @@ export type Signature = { text: string; args?: Arg[] };
 
 export type Entry = {
   name: string;
-  kind: 'function' | 'macro' | 'special' | 'value';
+  kind: 'function' | 'macro' | 'special' | 'value' | 'class' | 'abstract' | 'record';
   doc: string;
   runtimes: string[];
   signatures?: Signature[];
+  parent?: string;
+  immutable?: boolean;
+  fields?: { name: string; required: boolean; default?: string; state?: boolean; accessor?: string }[];
   source?: { file: string; line: number };
 };
 
@@ -89,6 +92,9 @@ export const kindLabel: Record<Entry['kind'], string> = {
   macro: 'macro',
   special: 'special form',
   value: 'value',
+  class: 'class',
+  abstract: 'abstract type',
+  record: 'record',
 };
 
 export const runtimeLabel: Record<string, string> = { chez: 'Chez', c: 'C' };
