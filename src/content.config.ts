@@ -16,4 +16,14 @@ const docs = defineCollection({
   }),
 });
 
-export const collections = { docs };
+// Pages for the 2025 operating system, published under /legacy/.
+const legacy = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/legacy/content' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    toc: z.boolean().default(true),
+  }),
+});
+
+export const collections = { docs, legacy };

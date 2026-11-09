@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -8,12 +8,6 @@ export const docsRoot = path.join(otiumRoot, 'docs');
 export const docId = (file) => file.replace(/\.md$/, '');
 export const docHref = (file) => file === 'index.md' ? '/' : `/${docId(file)}/`;
 export const redirects = {
-  '/installation': '/how-to-run/',
-  '/language/overview': '/language-guide/',
-  '/language/syntax': '/language-guide/',
-  '/language/objects': '/language-guide/',
-  '/manse/overview': '/manse/guide/',
-  '/otos/overview': '/otos/guide/',
 };
 export const reference = JSON.parse(readFileSync(path.join(docsRoot, 'reference.json'), 'utf8'));
 export const navigation = JSON.parse(readFileSync(path.join(docsRoot, 'nav.json'), 'utf8'));
@@ -58,4 +52,38 @@ export function documentTitle({ source, data }) {
       }
     },
   };
+}
+
+// Guide pages that link to the API reference, so reference pages can link
+// back. Maps "ns" (links to the namespace page) and "ns#name" to
+// [{ href, title }] in sidebar order.
+export function guideLinks() {
+  const files = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(file);
+      else if (entry.name.endsWith('.md') && entry.name !== 'ui-revisions.md') files.push(path.relative(docsRoot, file));
+    }
+  };
+  walk(docsRoot);
+  const order = navigation.flatMap((section) => (section.items ?? []).map((item) => item.file ?? item));
+  files.sort((a, b) => (order.indexOf(a) + 1 || Infinity) - (order.indexOf(b) + 1 || Infinity));
+  const links = new Map();
+  const add = (key, page) => {
+    const pages = links.get(key) ?? [];
+    if (!pages.some((p) => p.href === page.href)) pages.push(page);
+    links.set(key, pages);
+  };
+  for (const file of files) {
+    const source = readFileSync(path.join(docsRoot, file), 'utf8');
+    const title = source.match(/^title:\s*"?(.+?)"?\s*$/m)?.[1]
+      ?? source.match(/^#\s+(?:✨\s*)?(.+)$/m)?.[1]
+      ?? docId(file);
+    const page = { href: docHref(file), title };
+    for (const [, ns, anchor] of source.matchAll(/\]\(\/reference\/([^/)#\s]+)\/(?:#([^)\s]+))?\)/g)) {
+      add(anchor ? `${ns}#${decodeURIComponent(anchor)}` : ns, page);
+    }
+  }
+  return links;
 }

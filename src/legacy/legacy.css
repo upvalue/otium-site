@@ -1,0 +1,278 @@
+/* Pages for the 2025 operating system. These sit on top of global.css. */
+
+@font-face {
+  font-family: 'BoldPixels';
+  src: url('/legacy/BoldPixels1.4.ttf') format('truetype');
+  font-display: swap;
+}
+
+.legacy-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'BoldPixels', var(--font-sans);
+  font-size: 1.75rem;
+  font-weight: normal;
+  letter-spacing: 0;
+}
+
+.legacy-wordmark span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.25rem;
+}
+
+.legacy-note {
+  margin: 0 0 1.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  background: var(--wash);
+  color: var(--muted);
+  font-size: var(--text-nav);
+  line-height: 1.45;
+}
+
+.legacy-note a {
+  color: var(--accent);
+}
+
+.article img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 0.5rem;
+  border-radius: var(--radius);
+}
+
+/* Demos need room for a 1024x700 canvas: start the column right after the
+   sidebar instead of centring it. */
+@media (width >= 46rem) {
+  .page.wide {
+    max-width: 66rem;
+    margin-left: calc(clamp(0.5rem, calc(50vw - 33rem), 4rem) + 14.5rem);
+  }
+}
+
+/* Demo controls */
+
+.os-demo,
+.lang-demo {
+  margin-top: 1.5rem;
+}
+
+.demo-controls,
+.demo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.demo-button,
+.demo-tab {
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  background: var(--wash);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-nav);
+  cursor: pointer;
+}
+
+.demo-button:hover:not(:disabled),
+.demo-tab:hover {
+  border-color: #9fb6ff55;
+}
+
+.demo-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.demo-button.run:not(:disabled) {
+  background: #0f8a5f;
+  border-color: #19b07c;
+  color: #fff;
+}
+
+.demo-button.stop:not(:disabled) {
+  background: #b3363b;
+  border-color: #d4545a;
+  color: #fff;
+}
+
+select.demo-button {
+  padding-right: 0.6rem;
+}
+
+.demo-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--soft);
+}
+
+.demo-tab[aria-selected='true'] {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.activity {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #34d399;
+  animation: activity 1.2s ease-in-out infinite;
+}
+
+.activity[hidden] {
+  display: none;
+}
+
+@keyframes activity {
+  50% { box-shadow: 0 0 0 4px #34d39933; }
+}
+
+.demo-warning,
+.demo-error {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: var(--text-nav);
+}
+
+.demo-warning {
+  border: 1px solid #b4891f;
+  background: #b4891f22;
+  color: #f6d47a;
+}
+
+@media (width >= 1100px) {
+  .demo-warning {
+    display: none;
+  }
+}
+
+.demo-error {
+  border: 1px solid #d4545a;
+  background: #d4545a22;
+  color: #ffb4b7;
+}
+
+.demo-error[hidden],
+.demo-input[hidden],
+.demo-capture[hidden],
+[data-panel][hidden],
+.demo-controls [hidden] {
+  display: none;
+}
+
+.demo-panels {
+  min-height: 700px;
+}
+
+.demo-terminal,
+.lang-demo textarea,
+.demo-input input {
+  width: 100%;
+  margin: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: #000;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-ligatures: none;
+}
+
+.demo-terminal {
+  height: 22rem;
+  padding: 1rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.demo-input {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.demo-input input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+}
+
+.demo-graphics {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.demo-graphics canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: #000;
+  image-rendering: pixelated;
+  outline: none;
+}
+
+.demo-graphics canvas:focus {
+  border-color: #fff;
+  box-shadow: 0 0 10px #ffffff4d;
+}
+
+.demo-capture {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: var(--text-nav);
+  cursor: pointer;
+}
+
+.demo-capture span {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.375rem;
+  background: #000c;
+}
+
+/* Language demo */
+
+.lang-demo label {
+  display: block;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--ink);
+  font-size: var(--text-nav);
+  font-weight: 500;
+}
+
+.lang-demo textarea {
+  display: block;
+  height: 14rem;
+  padding: 0.75rem;
+  resize: vertical;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.lang-demo [data-process] {
+  margin-top: 0.75rem;
+}

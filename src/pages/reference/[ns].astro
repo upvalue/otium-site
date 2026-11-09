@@ -1,6 +1,7 @@
 ---
 import Docs from '../../layouts/Docs.astro';
 import TypeDetails from '../../components/TypeDetails.astro';
+import GuideLinks from '../../components/GuideLinks.astro';
 import {
   namespaces,
   kindLabel,
@@ -10,12 +11,14 @@ import {
   summary,
   type Namespace,
 } from '../../reference';
+import { guideLinks } from '../../docs.mjs';
 
 export function getStaticPaths() {
   return namespaces.map((ns) => ({ params: { ns: ns.name }, props: { ns } }));
 }
 
 const { ns } = Astro.props as { ns: Namespace };
+const guides = guideLinks();
 ---
 
 <Docs title={ns.name} description={ns.doc ? summary(ns.doc) : `Reference for ${ns.name}: ${ns.entries.length} bindings.`}>
@@ -24,6 +27,8 @@ const { ns } = Astro.props as { ns: Namespace };
   </p>
 
   {ns.doc && <div class="ref-doc" set:html={renderDoc(ns.doc, ns)} />}
+
+  <GuideLinks pages={guides.get(ns.name)} />
 
   <nav class="ref-index" aria-label="Bindings">
     {ns.entries.map((e) => <a href={`#${encodeURIComponent(e.name)}`}>{e.name}</a>)}
@@ -50,6 +55,7 @@ const { ns } = Astro.props as { ns: Namespace };
           ))}
           {e.doc ? <div class="ref-doc" set:html={renderDoc(e.doc, ns)} /> : <p class="ref-none">No documentation.</p>}
           {e.fields && <TypeDetails entry={e} ns={ns} />}
+          <GuideLinks pages={guides.get(`${ns.name}#${e.name}`)} />
         </section>
       );
     })

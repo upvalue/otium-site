@@ -1,0 +1,67 @@
+---
+import { Code } from 'astro:components';
+import Docs from '../../layouts/Docs.astro';
+import otium from '../../syntax/otium.mjs';
+import { grouped, type Diagnostic } from '../../diagnostics';
+
+const errors = grouped('E');
+const lints = grouped('L');
+const label = (key: string) => key.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+const escape = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// Explanations are plain prose with `code` spans.
+const prose = (text: string) => escape(text).replace(/`([^`]+)`/g, '<code>$1</code>');
+const sections: [string, string, [string, Diagnostic[]][]][] = [
+  ['errors', 'Errors', errors],
+  ['lint', 'Lint rules', lints],
+];
+---
+
+<Docs title="Error codes" description="Every error code and lint rule Otium reports, with examples.">
+  <p>
+    Otium prints a code such as <code>E0001</code> with each error and lint warning. Each code below says what it
+    means and shows code that triggers it next to a fixed version.
+  </p>
+
+  {
+    sections.map(([id, title, groups]) => (
+      <>
+        <h2 id={id}>{title}</h2>
+        {groups.map(([group, items]) => (
+          <>
+            <h3 id={`${id}-${group}`}>{label(group)}</h3>
+            {items.map((d) => (
+              <section class="ref-entry" id={d.code}>
+                <header class="ref-head">
+                  <h4>
+                    <a href={`#${d.code}`}>{d.code}</a> {d.title}
+                  </h4>
+                  {d.name && (
+                    <span class="ref-kind">
+                      {d.name}, {d.level}
+                    </span>
+                  )}
+                </header>
+                <div class="ref-doc">
+                  <p set:html={prose(d.explanation)} />
+                </div>
+                {d.example && (
+                  <>
+                    <p class="diag-label">Triggers it:</p>
+                    <Code code={d.example} lang={otium} theme="tokyo-night" />
+                  </>
+                )}
+                {d.fixed && (
+                  <>
+                    <p class="diag-label">Fixed:</p>
+                    <Code code={d.fixed} lang={otium} theme="tokyo-night" />
+                  </>
+                )}
+              </section>
+            ))}
+          </>
+        ))}
+      </>
+    ))
+  }
+</Docs>

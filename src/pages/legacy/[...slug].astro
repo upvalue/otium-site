@@ -1,0 +1,19 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../legacy/Layout.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('legacy');
+  return pages.map((page) => ({
+    params: { slug: page.id === 'index' ? undefined : page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content, headings } = await render(page);
+---
+
+<Layout title={page.data.title} headings={page.data.toc ? headings : []} description={page.data.description}>
+  <Content />
+</Layout>

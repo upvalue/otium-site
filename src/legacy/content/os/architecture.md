@@ -1,0 +1,76 @@
+---
+title: "Architecture"
+---
+
+## Build system
+
+## Kernel
+
+Otium uses a simple microkernel setup. The kernel provides syscalls for inter-process
+communication, process management and discovery, and basic memory management.
+
+The kernel and user-space programs are implemented as a single C++ program, with an option
+to write and run Tcl programs interactively. 
+
+### Memory management
+
+Otium allocates memory in 4KB pages which are recycled between process use. One small
+feature here is "known memory" which effectively pre-allocated large, contiguous regions
+of memory for subsystems that need it (for example, the graphical system needs a
+framebuffer).
+
+Memory management is done on a process-by-process basis, but in practice processes
+generally allocate a healthy number of pages upfront and then use
+[tlsf](https://github.com/mattconte/tlsf) for dynamic memory management.
+
+There is no virtual memory or memory protection at the moment -- in practice, the only
+memory which should be shared between processes is the graphical framebuffer.
+
+### Inter-process communication
+
+Otium has a hand rolled IPC framework.
+[services.yaml](https://raw.githubusercontent.com/upvalue/otium/refs/heads/main/services.yaml)
+specifies services and the types of messages they accept; this generates code for clients
+(for other processes to call the servers), headers for those servers, and stub files for
+the actual method impleemntation to be filled in.
+
+IPC calls are always synchronous: sending a message taps the scheduler to enter the
+receiving process, which then responds and returns to the calling process (via the scheduler).
+
+Arguments and return values go through registers. In the case where registers are
+insufficient space, each process has a "communications page" that it can put a messagepack
+message into.
+
+### Msgpack
+
+In a few spots, msgpack is used for communication of complex messages between the kernel
+and processes. For example, when a process starts, it gets its arguments through the
+communications page as a msgpack message.
+
+## Graphics and keyboard input
+
+The graphics and keyboard drivers are implemented as separate userspace programs. They
+support WASM (via the WASM runner supplying a few primitive functions), or on RISC-V
+VirtIO graphics and input.
+
+Graphics is a simple RGBA framebuffer that runs on a 1024x700; the graphics driver also
+includes a process switcher which allows multiple graphical processes to be switched
+between. It does, however, require these processes to be well behaved (e.g. by sending
+keystrokes to the graphics driver to check whether the user wants to switch processes). 
+
+The keyboard driver works purely by polling; thus it is not super responsive but in
+practice works well enough for now.
+
+Programs draw graphics by obtaining the framebuffer's address and writing to it, then
+telling the graphics driver when to flush. Some C++ utility code adds more abstractions on
+top of this simple system: TTF font rendering (via libschrift), graphical primitives and
+frames-per-second management.
+
+## Tcl interpreter / shell
+
+The Tcl interpreter is an implementation of a subset of Tcl and also serves as the
+system's shell and scripting interface for applications (like the editor). 
+
+Its design and implementation is discussed [in this
+article](https://upvalue.io/posts/trialing-zig-and-rust-by-writing-a-tcl-interpreter/),
+though it's since had a lot of features added.

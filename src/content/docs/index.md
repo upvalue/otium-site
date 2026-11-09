@@ -14,7 +14,7 @@ practicality.
 
 The main goal of Otium is being able to modify running applications, so let's
 make a little UI application and then change something about it. This guy just
-renderes a solid colored rectangle, and we'll make it so that clicking changes
+renders a solid colored rectangle, and we'll make it so that clicking changes
 the rectangle's color.
 
 ```otium

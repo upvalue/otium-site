@@ -1,0 +1,32 @@
+---
+title: otium
+description: A simple microkernel operating system project
+toc: false
+---
+
+Otium is a little operating system project that I worked on from September to December of 2025.
+
+It's a simple microkernel that runs on RISC-V (under QEMU) or on WebAssembly.
+
+[Try the interactive demo →](/legacy/demo/)
+
+## Features
+
+- The shell is a small implementation of [Tcl](https://en.wikipedia.org/wiki/Tcl) so normal programming works
+- Graphics, filesystems and input devices support are just processes, which can crash normally without impacting the overall system
+- A cooperative scheduler, which is implemented using Emscripten fibers on WebAssembly
+
+## Screenshots
+
+Tcl shell with taskbar showing running processes:
+
+![Tcl Shell](/legacy/tcl-shell.png)
+
+Graphics demo with planets:
+
+![Graphics Demo](/legacy/graphics-demo.png)
+
+## Links
+
+- [otium.sh](https://otium.sh) - website
+- [devlog](https://upvalue.io/posts/tag/otium) - dev log

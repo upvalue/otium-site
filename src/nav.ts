@@ -11,7 +11,13 @@ export async function getNav(): Promise<NavSection[]> {
   return navigation.map(section => {
     if (section.generated) {
       if (section.generated !== 'reference') throw new Error(`Unknown generated navigation: ${section.generated}`);
-      return { title: section.title, items: namespaces.map(ns => ({ label: ns.name, slug: `reference/${ns.name}` })) };
+      return {
+        title: section.title,
+        items: [
+          ...namespaces.map(ns => ({ label: ns.name, slug: `reference/${ns.name}` })),
+          { label: 'Error codes', slug: 'reference/diagnostics' },
+        ],
+      };
     }
     return {
       title: section.title,

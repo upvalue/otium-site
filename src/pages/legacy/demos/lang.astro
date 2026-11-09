@@ -1,0 +1,31 @@
+---
+import Layout from '../../../legacy/Layout.astro';
+---
+
+<Layout title="Language demo" description="Interactive demo of the Otium programming language" wide>
+  <p>
+    The 2025 Otium language, which translated to JavaScript. Pick a stage to see the tokens, the
+    parse tree, the generated JavaScript, or the program's output. See the <a href="/legacy/lang/guide/">language page</a>.
+  </p>
+
+  <div class="lang-demo" data-lang-demo>
+    <div class="demo-tabs" role="tablist">
+      <button type="button" class="demo-tab" role="tab" data-mode="lex" aria-selected="false">Lex</button>
+      <button type="button" class="demo-tab" role="tab" data-mode="parse" aria-selected="false">Parse</button>
+      <button type="button" class="demo-tab" role="tab" data-mode="translate" aria-selected="false">Translate</button>
+      <button type="button" class="demo-tab" role="tab" data-mode="eval" aria-selected="true">Eval</button>
+    </div>
+
+    <label for="lang-source">Source code</label>
+    <textarea id="lang-source" data-source spellcheck="false"></textarea>
+    <button type="button" class="demo-button run" data-process>Run</button>
+
+    <label for="lang-output" data-output-label>Terminal output</label>
+    <textarea id="lang-output" data-output readonly></textarea>
+  </div>
+
+  <script>
+    import { startLangDemo } from '../../../legacy/lang-demo';
+    startLangDemo(document.querySelector<HTMLElement>('[data-lang-demo]')!);
+  </script>
+</Layout>

@@ -1,6 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { reference } from '../docs.mjs';
 
-const reference = JSON.parse(readFileSync(new URL('../../otium/docs/reference.json', import.meta.url), 'utf8'));
 const core = reference.namespaces.find((ns) => ns.name === 'otium.core').entries;
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

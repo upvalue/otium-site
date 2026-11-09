@@ -1,0 +1,19 @@
+---
+// Guide pages that explain a reference namespace or entry.
+const { pages } = Astro.props as { pages?: { href: string; title: string }[] };
+---
+
+{
+  pages?.length ? (
+    <p class="ref-guides">
+      Explained in{' '}
+      {pages.map((page, i) => (
+        <>
+          {i > 0 && (i === pages.length - 1 ? ' and ' : ', ')}
+          <a href={page.href}>{page.title}</a>
+        </>
+      ))}
+      .
+    </p>
+  ) : null
+}

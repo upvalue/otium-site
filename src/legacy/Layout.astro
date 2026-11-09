@@ -1,0 +1,103 @@
+---
+import '@fontsource-variable/bricolage-grotesque/standard.css';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+import './legacy.css';
+import { legacyNav } from './nav.mjs';
+
+interface Props {
+  title: string;
+  headings?: { depth: number; slug: string; text: string }[];
+  description?: string;
+  wide?: boolean;
+}
+
+const { title, description, headings = [], wide = false } = Astro.props;
+const toc = headings.filter(h => h.depth === 2 || h.depth === 3);
+const path = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const pageTitle = path === '/legacy/' ? 'Otium OS (2025)' : `${title} · Otium OS (2025)`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a1020" />
+    <link rel="icon" href="/legacy/otium-favicon.png" type="image/png" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body>
+    <header class="mobile-bar">
+      <a href="/legacy/" class="wordmark legacy-wordmark">otium <span>2025</span></a>
+      <div class="mobile-actions">
+        <button type="button" class="menu-button" data-menu aria-controls="mobile-nav" aria-expanded="false">Menu</button>
+      </div>
+    </header>
+
+    <div class:list={['page', { wide }]}>
+      <aside class="sidebar">
+        <a href="/legacy/" class="wordmark legacy-wordmark">
+          <img src="/legacy/otium-favicon.png" alt="" width="28" height="28" />
+          otium <span>2025</span>
+        </a>
+        <nav id="mobile-nav" class="nav" aria-label="Documentation">
+          {
+            legacyNav.map((section) => (
+              <div class="nav-section">
+                {section.title && <h2>{section.title}</h2>}
+                <ul>
+                  {section.items.map((item) => (
+                    <li>
+                      <a href={item.href} class="nav-link" aria-current={item.href === path ? 'page' : undefined}>
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+          <div class="nav-section nav-external">
+            <ul>
+              <li><a href="https://upvalue.io/posts/tag/otium/" class="nav-link">Development log</a></li>
+              <li><a href="https://github.com/upvalue/otium/tree/bd88276/os" class="nav-link">Source (Dec 2025)</a></li>
+              <li><a href="/" class="nav-link">Current Otium docs →</a></li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+
+      <main>
+        <p class="legacy-note">
+          Archived docs for the operating system written in late 2025. <a href="/">Otium today</a> is a different project.
+        </p>
+        <article class="article">
+          <h1>{title}</h1>
+          {toc.length > 0 && (
+            <nav class="page-toc" aria-label="On this page">
+              <details open><summary>On this page</summary>
+                <ul>{toc.map(h => <li class:list={{ nested: h.depth === 3 }}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ul>
+              </details>
+            </nav>
+          )}
+          <slot />
+        </article>
+      </main>
+    </div>
+
+    <script>
+      const button = document.querySelector<HTMLButtonElement>('[data-menu]')!;
+      button.addEventListener('click', () => {
+        const open = document.body.classList.toggle('menu-open');
+        button.setAttribute('aria-expanded', String(open));
+        button.textContent = open ? 'Close' : 'Menu';
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('menu-open')) button.click();
+      });
+    </script>
+  </body>
+</html>

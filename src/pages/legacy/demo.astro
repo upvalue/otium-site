@@ -1,0 +1,55 @@
+---
+import Layout from '../../legacy/Layout.astro';
+---
+
+<Layout title="Interactive demo" description="Run the 2025 Otium operating system in the browser" wide>
+  <p>
+    The operating system compiled to WebAssembly. Press Run to boot it into the Tcl shell, then type
+    commands or pick a recipe. See the <a href="/legacy/os/user-guide/">user guide</a> for what to try.
+  </p>
+
+  <div class="os-demo" data-os-demo>
+    <p class="demo-warning">This demo is designed for screens at least 1024×700. You may need to scroll or zoom out.</p>
+
+    <div class="demo-controls">
+      <button type="button" class="demo-button run" data-run disabled>Run</button>
+      <button type="button" class="demo-button stop" data-stop disabled>Stop</button>
+      <button type="button" class="demo-button" data-clear>Clear</button>
+      <select class="demo-button" data-recipes hidden aria-label="Recipes">
+        <option value="">Select a recipe…</option>
+        <option value='puts "hello world"'>Hello World</option>
+        <option value="proc fib {x} { if {<= $x 1} { return 1 } else { + [fib [- $x 1]] [fib [- $x 2]] } }; fib 10">Calculate fib(10)</option>
+        <option value="run spacedemo">Run graphical demo</option>
+        <option value="run edit hello.tcl">Edit a tcl script</option>
+      </select>
+    </div>
+
+    <p class="demo-error" data-error hidden></p>
+
+    <div class="demo-tabs" role="tablist">
+      <button type="button" class="demo-tab" role="tab" data-tab="terminal" aria-selected="true">Terminal</button>
+      <button type="button" class="demo-tab" role="tab" data-tab="graphics" aria-selected="false">
+        Graphics <span class="activity" data-activity hidden></span>
+      </button>
+    </div>
+
+    <div class="demo-panels">
+      <div data-panel="terminal">
+        <pre class="demo-terminal" data-terminal>&gt; Loading…</pre>
+        <form class="demo-input" data-input-form hidden>
+          <input type="text" data-input placeholder="Type a command and press Enter…" autocomplete="off" spellcheck="false" />
+          <button type="submit" class="demo-button">Send</button>
+        </form>
+      </div>
+      <div class="demo-graphics" data-panel="graphics" hidden>
+        <canvas data-canvas tabindex="0" width="1024" height="700"></canvas>
+        <button type="button" class="demo-capture" data-capture hidden><span>Click to capture keyboard (Tab to release)</span></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { startOsDemo } from '../../legacy/os/demo';
+    startOsDemo(document.querySelector<HTMLElement>('[data-os-demo]')!);
+  </script>
+</Layout>

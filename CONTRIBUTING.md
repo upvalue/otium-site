@@ -42,9 +42,28 @@ Redirects live in `src/docs.mjs`.
 
 ## Checks
 
+Search data is generated at `/search.json` from complete reference entries and
+rendered document sections. The dialog loads it and MiniSearch on first use.
+Reference names preserve punctuation and rank ahead of prose matches. Tests in
+`src/docs/search.test.mjs` cover ranking, filters, section extraction and excerpts.
+
 `pnpm test` checks syntax highlighting and link resolution. `pnpm build`
 checks sidebar targets and rendered internal links, including heading and
 API anchors. Broken links stop the build. External sites aren't fetched.
 
 The old `src/content/docs` directory is no longer loaded. Its files remain
 as migration history, including local edits that predate this change.
+
+## Legacy OS pages
+
+`/legacy/` keeps the docs and demos for the operating system written in late
+2025, which used to be the whole site. Everything for it lives in
+`src/legacy/` and `public/legacy/`, plus routes in `src/pages/legacy/`. The
+old top-level URLs (`/demo`, `/os/...`, `/demos/lang`) redirect there; the
+list is in `src/legacy/nav.mjs`.
+
+`public/legacy/os-wasm/` holds the WebAssembly build of `os/` from Otium
+commit bd88276. It's committed rather than built in CI. To rebuild it, check
+out that commit and run `nix-build` in `os/`, then copy `result/lib/os.js` and
+`result/lib/os.wasm` over. `src/legacy/lang/` is a copy of that commit's
+`lang/` sources for the language demo.
