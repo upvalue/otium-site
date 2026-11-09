@@ -16,7 +16,6 @@ export type Entry = {
   name: string;
   kind: 'function' | 'macro' | 'special' | 'value' | 'class' | 'abstract' | 'record';
   doc: string;
-  runtimes: string[];
   signatures?: Signature[];
   parent?: string;
   immutable?: boolean;
@@ -96,5 +95,3 @@ export const kindLabel: Record<Entry['kind'], string> = {
   abstract: 'abstract type',
   record: 'record',
 };
-
-export const runtimeLabel: Record<string, string> = { chez: 'Chez', c: 'C' };

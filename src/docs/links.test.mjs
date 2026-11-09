@@ -7,8 +7,8 @@ import { resolveLink, docsRoot } from '../docs.mjs';
 import { checkLinks } from '../../scripts/check-links.mjs';
 
 test('relative documents, fragments, source files and external links', () => {
-  const source = path.join(docsRoot, 'manse/guide.md');
-  assert.equal(resolveLink('../language-guide.md#lint', source), '/language-guide/#lint');
+  const source = path.join(docsRoot, 'otos/guide.md');
+  assert.equal(resolveLink('../guide/loops.md#top', source), '/guide/loops/#top');
   assert.equal(resolveLink('../index.md', source), '/');
   assert.match(resolveLink('../../examples/hand/intro-ui.ot', source), /github.com\/upvalue\/otium\/blob\/[a-f0-9]+\/examples\/hand\/intro-ui.ot$/);
   assert.equal(resolveLink('https://example.com/a.md', source), 'https://example.com/a.md');

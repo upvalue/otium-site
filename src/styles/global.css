@@ -508,16 +508,9 @@ a {
   text-decoration: none;
 }
 
-.ref-kind,
-.ref-runtime {
+.ref-kind {
   font-size: 0.75rem;
   color: var(--muted);
-}
-
-.ref-runtime {
-  padding: 0.05em 0.5em;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
 }
 
 .article .ref-source {
